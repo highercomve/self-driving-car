@@ -8,10 +8,9 @@ class App {
   controls = null
   bestPlayer = null
 
-  constructor(carCanvas, networkCanvas, simulations = 1, autolearn = true) {
+  constructor(carCanvas, networkCanvas, autolearn = true) {
     this.carCanvas = carCanvas
     this.networkCanvas = networkCanvas
-    this.simulations = simulations
     this.autolearn = autolearn
   }
 
@@ -43,7 +42,7 @@ class App {
     }
   }
 
-  init = (simulations = undefined, trafficNumber = 50) => {
+  init = (simulations = 1, trafficNumber = 50) => {
     this.carCanvas.width = 200
     this.networkCanvas.width = 400
 
@@ -54,7 +53,7 @@ class App {
     this.road = new Road(this.ctx, this.carCanvas.width / 2, this.carCanvas.width * 0.9)
 
     this.players = App.generateCars(
-      !simulations ? this.simulations : simulations,
+      simulations,
       this.ctx,
       this.road,
       this.controls
@@ -99,7 +98,10 @@ class App {
       }
       previousLane = lane
       const x = this.road.getLaneCenter(lane)
-      const y = randomIntFromInterval(-200, -1 * 10 * i * this.carCanvas.height)
+      const y = randomIntFromInterval(
+        -this.carCanvas.height + 400,
+        -1 * 5 * i * this.carCanvas.height
+      )
       traffic.push(new Car(this.ctx, x, y, 30, 50, controls, opts, getRandomColor()))
     }
     return traffic

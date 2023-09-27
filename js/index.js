@@ -19,7 +19,6 @@ document.addEventListener("DOMContentLoaded", () => {
   window.app = new App(
     document.getElementById("app"),
     document.getElementById("network"),
-    window.APP_SIMULATIONS,
     true
   )
   window.app.init(window.APP_SIMULATIONS, window.APP_TRAFFIC)
