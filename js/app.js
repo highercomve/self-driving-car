@@ -146,7 +146,7 @@ class App {
     }
     if (this.autolearn && liveCars.length == 0) {
       this.saveOnLocalStorage()
-      this.init(window.NUMBER_OF_SIMULATIONS)
+      this.init(window.APP_SIMULATIONS, window.APP_TRAFFIC)
       return 
     }
 

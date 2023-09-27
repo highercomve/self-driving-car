@@ -177,7 +177,7 @@ class Level {
         sum += level.inputs[j] * level.weights[j][i]
       }
 
-      level.outputs[i] = lessThanbias(sum, level.biases[i])
+      level.outputs[i] = sigmoid(sum, level.biases[i])
     }
 
     return level.outputs
@@ -197,5 +197,5 @@ function sumCalculation(sum, bias) {
 
 function sigmoid(sum, bias) {
   const x = sum + bias
-  return 1 / (1 + x * x)
+  return isNaN(x) ? 0 : (1 / (1 + Math.pow(x)))
 }

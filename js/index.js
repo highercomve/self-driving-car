@@ -1,3 +1,5 @@
+const searchParams = new URLSearchParams(location.search);
+
 function save() {
   window.app.saveOnLocalStorage()
 }
@@ -7,17 +9,18 @@ function discard() {
 }
 
 function restart() {
-  window.app.init(window.NUMBER_OF_SIMULATIONS)
+  window.app.init(window.APP_SIMULATIONS, window.APP_TRAFFIC)
 }
 
-window.NUMBER_OF_SIMULATIONS = 100
+window.APP_SIMULATIONS = searchParams.get("simulations") || 100
+window.APP_TRAFFIC = searchParams.get("traffic") || 50
 
 document.addEventListener("DOMContentLoaded", () => {
   window.app = new App(
     document.getElementById("app"),
     document.getElementById("network"),
-    window.NUMBER_OF_SIMULATIONS,
+    window.APP_SIMULATIONS,
     true
   )
-  window.app.init(window.NUMBER_OF_SIMULATIONS)
+  window.app.init(window.APP_SIMULATIONS, window.APP_TRAFFIC)
 })
