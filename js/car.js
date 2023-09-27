@@ -37,7 +37,7 @@ class Car {
     this.friction = options.friction
     this.drawSensor = options.drawSensor
     this.img = new Image()
-    this.img.src = "assets/car.png"
+    this.img.src = "public/car.png"
 
     this.controls = controls
     if (options.hasSensor) {

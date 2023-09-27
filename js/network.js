@@ -214,7 +214,7 @@ function linearCalculation(sum, bias) {
 }
 
 function sumCalculation(sum, bias) {
-  return sum - bias < 0 ? Math.min(sum + bias, -1) : Math.max(sum + bias, 1)
+  return sum + bias
 }
 
 function sigmoid(sum, bias) {
