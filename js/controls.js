@@ -7,22 +7,10 @@ class AIControls {
   }
 
   update = (outputs) => {
-    this.forward = this.#isActive(outputs[0], outputs[3])
-    this.left = this.#isActive(outputs[1], outputs[2])
-    this.right = this.#isActive(outputs[2], outputs[1])
-    this.reverse = this.#isActive(outputs[3], outputs[0])
-  }
-
-  update2 = (outputs) => {
     this.forward = outputs[0]
     this.left = outputs[1]
     this.right = outputs[2]
     this.reverse = outputs[3]
-  }
-
-  #isActive(a, b) {
-    const is = a - b
-    return (is > 0.6) ? 1 : 0
   }
 }
 

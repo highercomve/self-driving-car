@@ -44,7 +44,8 @@ class Car {
       this.sensor = new Sensor(this.ctx, this)
     }
     if (options.hasBrain) {
-      const levels = [this.sensor.rayCount, ...window.APP_HIDDEN_LEVELS.split(',').map(x => Number(x)), 4]
+      const hiddenLevel = window.APP_HIDDEN_LEVELS.split(',').map(x => Number(x)).filter(x => x > 0)
+      const levels = [this.sensor.rayCount, ...hiddenLevel]
       this.brain = new NeuralNetwork(levels)
     }
 

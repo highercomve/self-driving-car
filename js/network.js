@@ -91,6 +91,7 @@ class NeuralNetwork {
   levels = []
 
   constructor(neuronCounts = []) {
+    neuronCounts.push(4)
     for (let i = 0; i < neuronCounts.length - 1; i++) {
       this.levels.push(
         new Level(
@@ -142,10 +143,13 @@ class NeuralNetwork {
 
 class Level {
   weights = []
-  constructor(inputCount, outputCount) {
+  lastLevel = false
+
+  constructor(inputCount, outputCount, lastLevel = false) {
     this.inputs = new Array(inputCount)
     this.outputs = new Array(outputCount)
     this.biases = new Array(outputCount)
+    this.lastLevel = lastLevel
 
     for (let i = 0; i < inputCount; i++) {
       this.weights[i] = new Array(outputCount)
@@ -166,6 +170,20 @@ class Level {
     }
   }
 
+  static lastFeed(inputs) {
+    return [
+      NeuralNetwork.isActive(inputs[0], inputs[3]),
+      NeuralNetwork.isActive(inputs[1], inputs[2]),
+      NeuralNetwork.isActive(inputs[2], inputs[1]),
+      NeuralNetwork.isActive(inputs[3], inputs[0]),
+    ]
+  }
+
+  static isActive(a, b) {
+    const is = a - b
+    return (is > 0.6) ? 1 : 0
+  }
+
   static feedForward(inputs, level) {
     for (let i = 0; i < level.inputs.length; i++) {
       level.inputs[i] = inputs[i]
@@ -177,9 +195,13 @@ class Level {
         sum += level.inputs[j] * level.weights[j][i]
       }
 
-      level.outputs[i] = sumCalculation(sum, level.biases[i])
+      level.outputs[i] = linearCalculation(sum, level.biases[i])
     }
 
+    if (this.lastLevel) {
+      level.outputs = Level.lastFeed(level.outputs)
+    }
+  
     return level.outputs
   }
 }
@@ -192,7 +214,7 @@ function linearCalculation(sum, bias) {
 }
 
 function sumCalculation(sum, bias) {
-  return sum + bias
+  return sum - bias < 0 ? Math.min(sum + bias, -1) : Math.max(sum + bias, 1)
 }
 
 function sigmoid(sum, bias) {
