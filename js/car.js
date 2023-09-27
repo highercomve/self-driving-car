@@ -1,3 +1,5 @@
+import { NeuralNetwork } from './network.js'
+import { Sensor } from './sensor.js'
 
 const defaultCarOptions = {
   acc: 0.2,
@@ -10,7 +12,7 @@ const defaultCarOptions = {
 
 const angleSpeed = 1 / 200
 
-class Car {
+export class Car {
   x = 0
   y = 0
   width = 30

@@ -1,15 +1,56 @@
+import { App } from './app.js'
+
 const searchParams = new URLSearchParams(location.search);
 
-function save() {
+window.save = () => {
   window.app.saveOnLocalStorage()
 }
 
-function discard() {
+window.discard = () => {
   localStorage.clear();
 }
 
-function restart() {
+window.restart = () => {
   window.app.init(window.APP_SIMULATIONS, window.APP_TRAFFIC)
+}
+
+window.importModel = () => {
+  const input = document.getElementById("import-model")
+  input.click()
+}
+
+window.exportModel = () => {
+  const bestBrain = JSON.parse(localStorage.getItem("bestBrain"))
+  const blob = new Blob([JSON.stringify(bestBrain, null, 2)], {
+    type: "application/json",
+  });
+  var file = window.URL.createObjectURL(blob)
+  var a = document.createElement('a')
+  a.href = file
+  a.download = "model.json"
+  a.target = '_black'
+  a.referrerPolicy = 'noopener,noreferrer'
+  a.click()
+}
+
+window.changeFiles = (event) => {
+  const input = document.getElementById("import-model")
+  for (const fileIndex in input.files) {
+    const file = input.files[fileIndex]
+    if (!file || typeof file === "function") {
+      break 
+    }
+
+    const reader = new window.FileReader()
+    reader.onload = function () {
+      return processFile(file, this.result)
+    }
+    reader.readAsText(file)
+  }
+}
+
+function processFile(file, reader) {
+  localStorage.setItem("bestBrain", JSON.stringify(reader));
 }
 
 window.APP_SIMULATIONS = searchParams.get("simulations") || 100
@@ -19,6 +60,9 @@ window.APP_HIDDEN_LEVELS = searchParams.get("hidden_levels") || ''
 window.APP_SHOW_NETWORK = !!searchParams.get("show_network")
 
 document.addEventListener("DOMContentLoaded", () => {
+  const input = document.getElementById("import-model")
+  input.addEventListener("change", changeFiles)
+
   window.app = new App(
     document.getElementById("app"),
     document.getElementById("network"),

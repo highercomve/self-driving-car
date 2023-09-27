@@ -1,4 +1,4 @@
-class Sensor {
+export class Sensor {
   debug = false
 
   constructor(ctx, car, rayCount = 0) {

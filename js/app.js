@@ -1,7 +1,14 @@
+import { Visualizer } from "./visualizer.js"
+import { Road } from './road.js'
+import { Car } from './car.js'
+import { CreateControls } from './controls.js'
+import { NeuralNetwork } from './network.js'
+import { Info } from './info.js'
+
 // const divergence = Math.random() * 2 - 1
 const divergence = 0.3
 
-class App {
+export class App {
   players = []
   ctx = null
   networkCtx = null
@@ -49,7 +56,7 @@ class App {
 
     this.ctx = this.carCanvas.getContext("2d")
     this.networkCtx = this.networkCanvas.getContext("2d")
-    this.controls = new AIControls()
+    this.controls = CreateControls("AI")
 
     this.road = new Road(this.ctx, this.carCanvas.width / 2, this.carCanvas.width * 0.9)
 
@@ -69,15 +76,6 @@ class App {
         }
       }
     }
-
-    if (!localStorage.getItem("bestBrain") && window.preloadBrain) {
-      for (let i = 0; i < this.players.length; i++) {
-        this.players[i].brain = JSON.parse(window.preloadBrain);
-        if (i != 0) {
-          NeuralNetwork.mutate(this.players[i].brain, divergence);
-        }
-      }
-    }
     
     this.info = new Info(this.players.length)
     this.animate()
@@ -85,7 +83,7 @@ class App {
 
   #generateTraffic(road, howMany = 1) {
     const traffic = []
-    const controls = new ForwardControls()
+    const controls = CreateControls()
     const opts = {
       maxSpeed: 1.5,
       hasSensor: false,
@@ -157,7 +155,7 @@ class App {
   }
 }
 
-function debounce(func, timeout = 300){
+export function debounce(func, timeout = 300){
   let timer;
   return (...args) => {
     clearTimeout(timer);

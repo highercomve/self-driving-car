@@ -1,4 +1,4 @@
-class Info {
+export class Info {
   constructor(liveCars = 0) {
     this.liveCars = liveCars
     this.element = document.getElementById("info")

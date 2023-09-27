@@ -1,7 +1,7 @@
 
 const infinity = 100000;
 
-class Road {
+export class Road {
   constructor(ctx, x, width, laneCount = 3) {
     this.x = x
     this.width = width

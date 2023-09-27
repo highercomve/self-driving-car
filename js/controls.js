@@ -1,4 +1,15 @@
-class AIControls {
+export function CreateControls(type = "KEYS") {
+  switch(type) {
+    case "AI":
+      return new AIControls()
+    case "KEYS":
+      return new KeyboardControls()
+    default:
+      return new ForwardControls()
+  }
+}
+
+export class AIControls {
   constructor() {
     this.forward = false
     this.left = false
@@ -14,7 +25,7 @@ class AIControls {
   }
 }
 
-class ForwardControls {
+export class ForwardControls {
   constructor() {
     this.forward = true
     this.left = false
@@ -24,7 +35,7 @@ class ForwardControls {
   update = (_) => {}
 }
 
-class KeyboardControls {
+export class KeyboardControls {
   constructor() {
     this.forward = false
     this.left = false
