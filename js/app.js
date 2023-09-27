@@ -34,7 +34,11 @@ class App {
   saveOnLocalStorage = () => {
     const minYPosition = Math.min(...this.players.map(c => c.y))
     const bestPlayer = this.players.find(c => c.y == minYPosition)
-    localStorage.setItem("bestBrain", JSON.stringify(bestPlayer.brain));
+    const bestDistance = localStorage.getItem("bestDistance")
+    if (!bestDistance || bestPlayer.y > Number(bestDistance)) {
+      localStorage.setItem("bestBrain", JSON.stringify(bestPlayer.brain));
+      localStorage.setItem("bestDistance", bestPlayer.y);
+    }
   }
 
   init = (simulations = undefined, trafficNumber = 50) => {
@@ -136,13 +140,16 @@ class App {
     this.networkCtx.lineDashOffset = -1 * time / 50
     this.info.draw()
 
-    // Visualizer.drawNetwork(this.networkCtx, bestPlayer.brain)
-    if (liveCars.length > 0 || this.players.length == 1) {
-      requestAnimationFrame(this.animate)
-    } else {
+    if (!this.autolearn) {
+      Visualizer.drawNetwork(this.networkCtx, bestPlayer.brain)
+    }
+    if (liveCars.length == 0 || this.autolearn) {
       this.saveOnLocalStorage()
       this.init(window.NUMBER_OF_SIMULATIONS)
+      return 
     }
+
+    requestAnimationFrame(this.animate)
   }
 }
 
