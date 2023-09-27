@@ -51,6 +51,7 @@ window.changeFiles = (event) => {
 
 function processFile(file, reader) {
   localStorage.setItem("bestBrain", JSON.stringify(reader));
+  location.reload()
 }
 
 window.APP_SIMULATIONS = searchParams.get("simulations") || 100
