@@ -10,7 +10,7 @@ function restart() {
   window.app.init()
 }
 
-window.NUMBER_OF_SIMULATIONS = 1000
+window.NUMBER_OF_SIMULATIONS = 100
 
 document.addEventListener("DOMContentLoaded", () => {
   window.app = new App(

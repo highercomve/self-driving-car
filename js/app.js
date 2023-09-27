@@ -16,7 +16,6 @@ class App {
   static generateCars(N, ctx, road, controls, opts = { maxSpeed: 2.2 }) {
     const cars = [];
     for (let i = 0; i < N; i++) {
-      console.info(i)
       cars.push(new Car(
         ctx,
         road.getLaneCenter(1),
@@ -35,7 +34,7 @@ class App {
     const minYPosition = Math.min(...this.players.map(c => c.y))
     const bestPlayer = this.players.find(c => c.y == minYPosition)
     const bestDistance = localStorage.getItem("bestDistance")
-    if (!bestDistance || bestPlayer.y > Number(bestDistance)) {
+    if (!bestDistance || bestPlayer.y <= Number(bestDistance)) {
       localStorage.setItem("bestBrain", JSON.stringify(bestPlayer.brain));
       localStorage.setItem("bestDistance", bestPlayer.y);
     }
@@ -143,7 +142,7 @@ class App {
     if (!this.autolearn) {
       Visualizer.drawNetwork(this.networkCtx, bestPlayer.brain)
     }
-    if (liveCars.length == 0 || this.autolearn) {
+    if (this.autolearn && liveCars.length == 0) {
       this.saveOnLocalStorage()
       this.init(window.NUMBER_OF_SIMULATIONS)
       return 
