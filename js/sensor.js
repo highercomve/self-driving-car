@@ -1,9 +1,9 @@
 class Sensor {
   debug = false
 
-  constructor(ctx, car, rayCount = 10) {
+  constructor(ctx, car, rayCount = 0) {
     this.car = car
-    this.rayCount = rayCount
+    this.rayCount = rayCount === 0 ? window.APP_SENSORS : rayCount
     this.rayLength = 200
     this.raySpread = Math.PI / 1.5
 
