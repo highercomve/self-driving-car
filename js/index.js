@@ -7,7 +7,7 @@ function discard() {
 }
 
 function restart() {
-  window.app.init()
+  window.app.init(window.NUMBER_OF_SIMULATIONS)
 }
 
 window.NUMBER_OF_SIMULATIONS = 100
@@ -16,7 +16,8 @@ document.addEventListener("DOMContentLoaded", () => {
   window.app = new App(
     document.getElementById("app"),
     document.getElementById("network"),
-    window.NUMBER_OF_SIMULATIONS
+    window.NUMBER_OF_SIMULATIONS,
+    true
   )
   window.app.init(window.NUMBER_OF_SIMULATIONS)
 })

@@ -44,7 +44,7 @@ class Car {
       this.sensor = new Sensor(this.ctx, this)
     }
     if (options.hasBrain) {
-      const counts = [this.sensor.rayCount, 4]
+      const counts = [this.sensor.rayCount, 8, 6, 4]
       this.brain = new NeuralNetwork(counts)
     }
 

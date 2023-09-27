@@ -177,15 +177,15 @@ class Level {
         sum += level.inputs[j] * level.weights[j][i]
       }
 
-      level.outputs[i] = linearCalculation(sum, level.biases[i])
+      level.outputs[i] = lessThanbias(sum, level.biases[i])
     }
 
     return level.outputs
   }
 }
 
-function lessThabias(sum, bias) {
-  return sum > level.biases[i] ? 1 : 0
+function lessThanbias(sum, bias) {
+  return sum > bias ? 1 : 0
 }
 function linearCalculation(sum, bias) {
   return sum + bias > 0 ? 1 : 0
@@ -193,4 +193,9 @@ function linearCalculation(sum, bias) {
 
 function sumCalculation(sum, bias) {
   return sum + bias
+}
+
+function sigmoid(sum, bias) {
+  const x = sum + bias
+  return 1 / (1 + x * x)
 }

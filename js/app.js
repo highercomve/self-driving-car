@@ -1,3 +1,5 @@
+// const divergence = Math.random() * 2 - 1
+const divergence = 0.3
 
 class App {
   players = []
@@ -34,7 +36,8 @@ class App {
     const minYPosition = Math.min(...this.players.map(c => c.y))
     const bestPlayer = this.players.find(c => c.y == minYPosition)
     const bestDistance = localStorage.getItem("bestDistance")
-    if (!bestDistance || bestPlayer.y <= Number(bestDistance)) {
+   
+    if (bestDistance || bestPlayer.y <= bestDistance) {
       localStorage.setItem("bestBrain", JSON.stringify(bestPlayer.brain));
       localStorage.setItem("bestDistance", bestPlayer.y);
     }
@@ -58,7 +61,6 @@ class App {
     )
 
     this.traffic = this.#generateTraffic(this.road, trafficNumber)
-    const divergence = Math.random() * 2 - 1
     if (localStorage.getItem("bestBrain")) {
       for (let i = 0; i < this.players.length; i++) {
         this.players[i].brain = JSON.parse(localStorage.getItem("bestBrain"));
