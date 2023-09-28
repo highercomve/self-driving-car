@@ -15,13 +15,62 @@ export class AIControls {
     this.left = false
     this.right = false
     this.reverse = false
+    this.manual = false
+
+    this.#addKeyboardListeners()
   }
 
   update = (outputs) => {
+    if (this.manual) {
+      return
+    }
     this.forward = outputs[0]
     this.left = outputs[1]
     this.right = outputs[2]
     this.reverse = outputs[3]
+  }
+
+  #addKeyboardListeners() {
+    document.onkeydown = (event) => {
+      this.manual = true
+      switch (event.key) {
+        case "m": 
+          this.manual = true
+          break
+        case "ArrowRight":
+          this.right = true
+          break
+        case "ArrowLeft":
+          this.left = true
+          break
+        case "ArrowUp":
+          this.forward = true
+          break
+        case "ArrowDown":
+          this.reverse = true
+          break
+      }
+    }
+    document.onkeyup = (event) => {
+      console.log("up")
+      switch (event.key) {
+        case "a":
+          this.manual = false
+          break
+        case "ArrowRight":
+          this.right = false
+          break
+        case "ArrowLeft":
+          this.left = false
+          break
+        case "ArrowUp":
+          this.forward = false
+          break
+        case "ArrowDown":
+          this.reverse = false
+          break
+      }
+    }
   }
 }
 
