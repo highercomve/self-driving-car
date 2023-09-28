@@ -58,7 +58,7 @@ export class Car {
   }
 
   getScore = () => {
-    return Math.abs((this.y / window.innerHeight ) * this.getOffsets().reduce((acc, o) => acc + o, 0))
+    return Math.abs(this.y / window.innerHeight ) + this.getOffsets().reduce((acc, o) => acc + o, 0)
   }
 
   getOffsets = () => {
