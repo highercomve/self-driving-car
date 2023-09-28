@@ -12,12 +12,12 @@ window.save = () => {
   window.app.saveOnLocalStorage(true)
 }
 
-window.discard = () => {
+window.restart = () => {
   localStorage.clear()
   location.reload()
 }
 
-window.restart = () => {
+window.iterate = () => {
   window.app.saveOnLocalStorage()
   location.reload()
 }
