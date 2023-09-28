@@ -35,6 +35,7 @@ export class AIControls {
       switch (event.key) {
         case "m": 
           this.manual = true
+          this.forward = true
           break
         case "ArrowRight":
           this.right = true
@@ -63,6 +64,7 @@ export class AIControls {
           break
         case "ArrowUp":
           this.forward = false
+          this.manual = false
           break
         case "ArrowDown":
           this.reverse = false
