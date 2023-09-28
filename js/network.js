@@ -116,18 +116,18 @@ export class Level {
   }
 }
 
-function lessThanbias(sum, bias) {
+export function lessThanbias(sum, bias) {
   return sum > bias ? 1 : 0
 }
-function linearCalculation(sum, bias) {
+export function linearCalculation(sum, bias) {
   return sum + bias > 0 ? 1 : 0
 }
 
-function sumCalculation(sum, bias) {
+export function sumCalculation(sum, bias) {
   return sum + bias
 }
 
-function sigmoid(sum, bias) {
+export function sigmoid(sum, bias) {
   const x = sum + bias
   return isNaN(x) ? 0 : (1 / (1 + (x * x)))
 }

@@ -3,7 +3,7 @@ import { Sensor } from './sensor.js'
 
 const defaultCarOptions = {
   acc: 0.2,
-  maxSpeed: 3,
+  maxSpeed: 2,
   friction: 0.05,
   drawSensor: false,
   hasSensor: true,
@@ -47,7 +47,7 @@ export class Car {
     }
     if (options.hasBrain) {
       const hiddenLevel = window.APP_HIDDEN_LEVELS.split(',').map(x => Number(x)).filter(x => x > 0)
-      const levels = [this.sensor.rayCount, ...hiddenLevel]
+      const levels = [this.sensor.rayCount + 2, ...hiddenLevel]
       this.brain = new NeuralNetwork(levels)
     }
 
@@ -57,11 +57,21 @@ export class Car {
     }
   }
 
+  getScore = () => {
+    return Math.abs((this.y / window.innerHeight ) * this.getOffsets().reduce((acc, o) => acc + o, 0))
+  }
+
+  getOffsets = () => {
+    return [...this.sensor.readings.map(
+      s => s == null ? 0 : 1 - s.offset
+    ), this.speed, this.angle]
+  } 
+
   update = (road, traffic = []) => {
     if (this.damaged) {
       return
     }
-    this.#move()
+    
     this.poligon = this.#createPolygon()
     this.damaged = this.#assessDamage(road.borders, traffic)
 
@@ -69,11 +79,11 @@ export class Car {
       this.sensor.update(road, traffic)
     }
     if (this.brain && this.sensor) {
-      const offsets = this.sensor.readings.map(
-        s => s == null ? 0 : 1 - s.offset
-      )
+      const offsets = this.getOffsets()
       this.controls.update(NeuralNetwork.feedForward(offsets, this.brain))
     }
+
+    this.#move()
   }
 
   draw = () => {

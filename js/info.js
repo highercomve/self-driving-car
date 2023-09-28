@@ -3,13 +3,23 @@ export class Info {
     this.liveCars = liveCars
     this.element = document.getElementById("info")
     this.carCountElm = document.getElementById("car-count")
+    this.bestScoreElm = document.getElementById("best-score")
+    this.iterationElm = document.getElementById("iteration-count")
+    this.currentScoreElem = document.getElementById("current-score")
   }
 
-  update = (liveCars) => {
-    this.liveCars = liveCars
+  update = (app) => {
+    // console.log(app)
+    this.liveCars = app.liveCars
+    this.iteration = app.iteration
+    this.fitnessScore = app.fitnessScore
+    this.currentScore = app.currentScore
   }
 
   draw = () => {
     this.carCountElm.innerText = this.liveCars
+    this.bestScoreElm.innerText = this.fitnessScore
+    this.iterationElm.innerText = this.iteration
+    this.currentScoreElem.innerText = this.currentScore
   }
 }

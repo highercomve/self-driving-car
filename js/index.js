@@ -1,9 +1,14 @@
 import { App } from './app.js'
 
 const searchParams = new URLSearchParams(location.search);
+window.APP_SIMULATIONS = searchParams.get("simulations") || 100
+window.APP_TRAFFIC = searchParams.get("traffic") || 50
+window.APP_SENSORS = Number(searchParams.get("sensors")) || 5
+window.APP_HIDDEN_LEVELS = searchParams.get("hidden_levels") || ''
+window.APP_SHOW_NETWORK = !!searchParams.get("show_network")
 
 window.save = () => {
-  window.app.saveOnLocalStorage()
+  window.app.saveOnLocalStorage(true)
 }
 
 window.discard = () => {
@@ -50,15 +55,9 @@ window.changeFiles = (event) => {
 }
 
 function processFile(file, reader) {
-  localStorage.setItem("bestBrain", JSON.stringify(reader));
+  localStorage.setItem("bestBrain", reader);
   location.reload()
 }
-
-window.APP_SIMULATIONS = searchParams.get("simulations") || 100
-window.APP_TRAFFIC = searchParams.get("traffic") || 50
-window.APP_SENSORS = Number(searchParams.get("sensors")) || 10
-window.APP_HIDDEN_LEVELS = searchParams.get("hidden_levels") || ''
-window.APP_SHOW_NETWORK = !!searchParams.get("show_network")
 
 document.addEventListener("DOMContentLoaded", () => {
   const input = document.getElementById("import-model")

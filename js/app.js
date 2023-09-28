@@ -14,12 +14,15 @@ export class App {
   networkCtx = null
   controls = null
   bestPlayer = null
+  fitnessScore = 0
+  iteration = 0
 
   constructor(carCanvas, networkCanvas, autolearn = true, showNetwork = false) {
     this.carCanvas = carCanvas
     this.networkCanvas = networkCanvas
     this.autolearn = autolearn
     this.showNetwork = showNetwork
+    this.fitnessScore = Number(localStorage.getItem("fitnessScore")) || 0
   }
 
   static generateCars(N, ctx, road, controls, opts = { maxSpeed: 2.2 }) {
@@ -39,18 +42,19 @@ export class App {
     return cars;
   }
 
-  saveOnLocalStorage = () => {
+  saveOnLocalStorage = (force = false) => {
     const minYPosition = Math.min(...this.players.map(c => c.y))
     const bestPlayer = this.players.find(c => c.y == minYPosition)
-    const bestDistance = localStorage.getItem("bestDistance")
    
-    if (bestDistance || bestPlayer.y <= bestDistance) {
+    if (force || bestPlayer.getScore() >= this.fitnessScore) {
+      this.fitnessScore = bestPlayer.getScore()
       localStorage.setItem("bestBrain", JSON.stringify(bestPlayer.brain));
-      localStorage.setItem("bestDistance", bestPlayer.y);
+      localStorage.setItem("fitnessScore", this.fitnessScore);
     }
   }
 
   init = (simulations = 1, trafficNumber = 50) => {
+    this.interation = this.iteration + 1
     this.carCanvas.width = 200
     this.networkCanvas.width = 400
 
@@ -99,7 +103,7 @@ export class App {
       const x = this.road.getLaneCenter(lane)
       const y = randomIntFromInterval(
         -window.innerHeight + 500,
-        -1 * 5 * i * window.innerHeight
+        -1 * howMany * (window.innerHeight/2)
       )
       traffic.push(new Car(this.ctx, x, y, 30, 50, controls, opts, getRandomColor()))
     }
@@ -119,11 +123,14 @@ export class App {
 
     const minYPosition = Math.min(...this.players.map(c => c.y))
     const liveCars = this.players.filter(c => !c.damaged && c.speed !== 0)
-
-    this.info.update(liveCars.length)
-
     const bestPlayer = this.players.find(c => c.y == minYPosition)
     
+    this.info.update({
+      liveCars: liveCars.length,
+      fitnessScore: this.fitnessScore,
+      iteration: this.iteration,
+      currentScore: bestPlayer.getScore()
+    })
     this.ctx.save()
     this.ctx.translate(0, -bestPlayer.y + this.carCanvas.height * 0.7)
 
