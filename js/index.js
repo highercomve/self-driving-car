@@ -6,6 +6,7 @@ window.APP_TRAFFIC = searchParams.get("traffic") || 50
 window.APP_SENSORS = Number(searchParams.get("sensors")) || 5
 window.APP_HIDDEN_LEVELS = searchParams.get("hidden_levels") || ''
 window.APP_SHOW_NETWORK = !!searchParams.get("show_network")
+window.APP_DIVERGENCE = Number(searchParams.get("divergence")) || 0.2
 
 window.save = () => {
   window.app.saveOnLocalStorage(true)

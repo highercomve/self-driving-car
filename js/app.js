@@ -5,8 +5,6 @@ import { CreateControls } from './controls.js'
 import { NeuralNetwork } from './network.js'
 import { Info } from './info.js'
 
-// const divergence = Math.random() * 2 - 1
-const divergence = 0.3
 export class App {
   players = []
   ctx = null
@@ -75,7 +73,7 @@ export class App {
       for (let i = 0; i < this.players.length; i++) {
         this.players[i].brain = JSON.parse(localStorage.getItem("bestBrain"));
         if (i != 0) {
-          NeuralNetwork.mutate(this.players[i].brain, divergence);
+          NeuralNetwork.mutate(this.players[i].brain, window.APP_DIVERGENCE);
         }
       }
     }
