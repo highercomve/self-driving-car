@@ -19,6 +19,7 @@ export class App {
     this.networkCanvas = networkCanvas
     this.autolearn = autolearn
     this.showNetwork = showNetwork
+    this.maxDistance = 0
     this.fitnessScore = Number(localStorage.getItem("fitnessScore")) || 0
   }
 
@@ -83,6 +84,7 @@ export class App {
   }
 
   #generateTraffic(road, howMany = 1) {
+    this.maxDistance = -1 * howMany * (window.innerHeight / 2)
     const traffic = []
     const controls = CreateControls()
     const opts = {
@@ -97,10 +99,11 @@ export class App {
         lane = (lane + 1) % road.laneCount
       }
       previousLane = lane
+      const d = i < (howMany / 10) ? (howMany / 10) : i
       const x = this.road.getLaneCenter(lane)
       const y = randomIntFromInterval(
         -window.innerHeight + 500,
-        -1 * howMany * (window.innerHeight / 2)
+        -1 * d * window.innerHeight
       )
       traffic.push(new Car(this.ctx, x, y, 30, 50, controls, opts, getRandomColor()))
     }
@@ -149,7 +152,7 @@ export class App {
     if (this.showNetwork) {
       Visualizer.drawNetwork(this.networkCtx, bestPlayer.brain)
     }
-    if (this.players.length > 1 && this.autolearn && liveCars.length == 0) {
+    if (bestPlayer.y <= this.maxDistance || (this.players.length > 1 && this.autolearn && liveCars.length == 0)) {
       this.saveOnLocalStorage()
       this.init(window.APP_SIMULATIONS, window.APP_TRAFFIC)
       return
