@@ -7,7 +7,8 @@ export class NeuralNetwork {
       this.levels.push(
         new Level(
           neuronCounts[i],
-          neuronCounts[i + 1]
+          neuronCounts[i + 1],
+          (i - neuronCounts.length - 2) <= 0
         )
       )
     }
@@ -53,14 +54,13 @@ export class NeuralNetwork {
 
 export class Level {
   weights = []
-  lastLevel = false
 
   constructor(inputCount, outputCount, lastLevel = false) {
     this.inputs = new Array(inputCount)
     this.outputs = new Array(outputCount)
     this.biases = new Array(outputCount)
     this.lastLevel = lastLevel
-
+  
     for (let i = 0; i < inputCount; i++) {
       this.weights[i] = new Array(outputCount)
     }
@@ -82,10 +82,10 @@ export class Level {
 
   static lastFeed(inputs) {
     return [
-      NeuralNetwork.isActive(inputs[0], inputs[3]),
-      NeuralNetwork.isActive(inputs[1], inputs[2]),
-      NeuralNetwork.isActive(inputs[2], inputs[1]),
-      NeuralNetwork.isActive(inputs[3], inputs[0]),
+      Level.isActive(inputs[0], inputs[3]),
+      Level.isActive(inputs[1], inputs[2]),
+      Level.isActive(inputs[2], inputs[1]),
+      Level.isActive(inputs[3], inputs[0]),
     ]
   }
 
@@ -94,7 +94,7 @@ export class Level {
     return (is > 0.6) ? 1 : 0
   }
 
-  static feedForward(inputs, level) {
+  static feedForward(inputs, level, lastLevel = false) {
     for (let i = 0; i < level.inputs.length; i++) {
       level.inputs[i] = inputs[i]
     }
@@ -108,7 +108,7 @@ export class Level {
       level.outputs[i] = linearCalculation(sum, level.biases[i])
     }
 
-    if (this.lastLevel) {
+    if (lastLevel) {
       level.outputs = Level.lastFeed(level.outputs)
     }
   

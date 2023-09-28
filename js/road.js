@@ -1,5 +1,5 @@
 
-const infinity = 100000;
+const infinity = window.innerHeight *  50;
 
 export class Road {
   constructor(ctx, x, width, laneCount = 3) {

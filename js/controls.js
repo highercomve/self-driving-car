@@ -1,4 +1,4 @@
-export function CreateControls(type = "KEYS") {
+export function CreateControls(type) {
   switch(type) {
     case "AI":
       return new AIControls()
@@ -44,6 +44,7 @@ export class KeyboardControls {
 
     this.#addKeyboardListeners();
   }
+
   update = (_) => {}
 
   #addKeyboardListeners() {

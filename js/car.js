@@ -58,13 +58,13 @@ export class Car {
   }
 
   getScore = (traffic = []) => {
-    return Math.abs(this.y / window.innerHeight ) + traffic.reduce((acc, t) => t.y > this.y ? acc + 1 : acc, 0)
+    return Math.abs(this.y / traffic.length) * (traffic.reduce((acc, t) => t.y > this.y ? acc + 1 : acc, 0) + 1)
   }
 
   getOffsets = () => {
     return [...this.sensor.readings.map(
       s => s == null ? 0 : 1 - s.offset
-    ), this.speed, this.angle]
+    ), this.angle, this.speed]
   } 
 
   update = (road, traffic = []) => {
