@@ -7,7 +7,6 @@ import { Info } from './info.js'
 
 // const divergence = Math.random() * 2 - 1
 const divergence = 0.3
-
 export class App {
   players = []
   ctx = null
@@ -54,7 +53,7 @@ export class App {
   }
 
   init = (simulations = 1, trafficNumber = 50) => {
-    this.interation = this.iteration + 1
+    this.iteration = this.iteration + 1
     this.carCanvas.width = 200
     this.networkCanvas.width = 400
 
