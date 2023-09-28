@@ -11,7 +11,7 @@ const defaultCarOptions = {
 }
 
 const angleSpeed = 1 / 200
-
+const TWO_PI = 2 * Math.PI
 export class Car {
   x = 0
   y = 0
@@ -62,10 +62,11 @@ export class Car {
   }
 
   getOffsets = () => {
+    const theta = this.angle - TWO_PI * Math.floor((this.angle + Math.PI) / TWO_PI)
     return [...this.sensor.readings.map(
       s => s == null ? 0 : 1 - s.offset
-    ), this.angle, this.speed]
-  } 
+    ), theta, this.speed / this.maxSpeed]
+  }
 
   update = (road, traffic = []) => {
     if (this.damaged) {
