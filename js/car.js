@@ -57,8 +57,8 @@ export class Car {
     }
   }
 
-  getScore = () => {
-    return Math.abs(this.y / window.innerHeight ) + this.getOffsets().reduce((acc, o) => acc + o, 0)
+  getScore = (traffic = []) => {
+    return Math.abs(this.y / window.innerHeight ) + traffic.reduce((acc, t) => t.y > this.y ? acc + 1 : acc, 0)
   }
 
   getOffsets = () => {

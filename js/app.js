@@ -43,9 +43,10 @@ export class App {
   saveOnLocalStorage = (force = false) => {
     const minYPosition = Math.min(...this.players.map(c => c.y))
     const bestPlayer = this.players.find(c => c.y == minYPosition)
-
-    if (force || bestPlayer.getScore() >= this.fitnessScore) {
-      this.fitnessScore = bestPlayer.getScore()
+    const currentScore = bestPlayer.getScore(this.traffic)
+    
+    if (force || currentScore >= this.fitnessScore) {
+      this.fitnessScore = currentScore
       localStorage.setItem("bestBrain", JSON.stringify(bestPlayer.brain));
       localStorage.setItem("fitnessScore", this.fitnessScore);
     }
@@ -129,7 +130,7 @@ export class App {
       liveCars: liveCars.length,
       fitnessScore: this.fitnessScore,
       iteration: this.iteration,
-      currentScore: bestPlayer.getScore()
+      currentScore: bestPlayer.getScore(this.traffic)
     })
     this.ctx.save()
     this.ctx.translate(0, -bestPlayer.y + this.carCanvas.height * 0.7)

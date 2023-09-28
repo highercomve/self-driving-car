@@ -55,8 +55,9 @@ window.changeFiles = (event) => {
   }
 }
 
-function processFile(file, reader) {
-  localStorage.setItem("bestBrain", reader);
+function processFile(_, reader) {
+  const brain = JSON.parse(reader)
+  localStorage.setItem("bestBrain", JSON.stringify(brain));
   location.reload()
 }
 
