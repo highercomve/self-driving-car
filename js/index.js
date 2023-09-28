@@ -22,15 +22,10 @@ window.iterate = () => {
   location.reload()
 }
 
-window.importModel = () => {
-  const input = document.getElementById("import-model")
-  input.click()
-}
-
 window.exportModel = () => {
-  const bestBrain = JSON.parse(localStorage.getItem("bestBrain"))
+  const brain = JSON.parse(localStorage.getItem("bestBrain"))
   const fitnessScore = JSON.parse(localStorage.getItem("fitnessScore"))
-  const blob = new Blob([JSON.stringify(bestBrain, null, 2)], {
+  const blob = new Blob([JSON.stringify({ brain, fitnessScore }, null, 2)], {
     type: "application/json",
   });
   var file = window.URL.createObjectURL(blob)
@@ -40,6 +35,11 @@ window.exportModel = () => {
   a.target = '_black'
   a.referrerPolicy = 'noopener,noreferrer'
   a.click()
+}
+
+window.importModel = () => {
+  const input = document.getElementById("import-model")
+  input.click()
 }
 
 window.changeFiles = (event) => {
@@ -58,9 +58,19 @@ window.changeFiles = (event) => {
   }
 }
 
-function processFile(_, reader) {
-  const brain = JSON.parse(reader)
-  localStorage.setItem("bestBrain", JSON.stringify(brain));
+function processFile(file, reader) {
+  const data = JSON.parse(reader)
+  console.log(data)
+  console.log(data.brain)
+  console.log(data.fitnessScore)
+  localStorage.clear()
+  if (data && data.brain && data.fitnessScore) {
+    localStorage.setItem("bestBrain", JSON.stringify(data.brain));
+    localStorage.setItem("fitnessScore", data.fitnessScore);
+  } else {
+    localStorage.setItem("bestBrain", JSON.stringify(data));
+  }
+
   location.reload()
 }
 
