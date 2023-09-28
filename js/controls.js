@@ -32,7 +32,6 @@ export class AIControls {
 
   #addKeyboardListeners() {
     document.onkeydown = (event) => {
-      this.manual = true
       switch (event.key) {
         case "m": 
           this.manual = true
@@ -52,7 +51,6 @@ export class AIControls {
       }
     }
     document.onkeyup = (event) => {
-      console.log("up")
       switch (event.key) {
         case "a":
           this.manual = false
