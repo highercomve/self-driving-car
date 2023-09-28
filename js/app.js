@@ -45,7 +45,7 @@ export class App {
   saveOnLocalStorage = (force = false) => {
     const minYPosition = Math.min(...this.players.map(c => c.y))
     const bestPlayer = this.players.find(c => c.y == minYPosition)
-   
+
     if (force || bestPlayer.getScore() >= this.fitnessScore) {
       this.fitnessScore = bestPlayer.getScore()
       localStorage.setItem("bestBrain", JSON.stringify(bestPlayer.brain));
@@ -80,7 +80,7 @@ export class App {
         }
       }
     }
-    
+
     this.info = new Info(this.players.length)
     this.animate()
   }
@@ -103,7 +103,7 @@ export class App {
       const x = this.road.getLaneCenter(lane)
       const y = randomIntFromInterval(
         -window.innerHeight + 500,
-        -1 * howMany * (window.innerHeight/2)
+        -1 * howMany * (window.innerHeight / 2)
       )
       traffic.push(new Car(this.ctx, x, y, 30, 50, controls, opts, getRandomColor()))
     }
@@ -117,14 +117,14 @@ export class App {
 
   animate = (time) => {
     this.#setHeight()
-    
+
     this.traffic.forEach((car) => car.update(this.road))
     this.players.forEach((p) => p.update(this.road, this.traffic))
 
     const minYPosition = Math.min(...this.players.map(c => c.y))
     const liveCars = this.players.filter(c => !c.damaged && c.speed !== 0)
     const bestPlayer = this.players.find(c => c.y == minYPosition)
-    
+
     this.info.update({
       liveCars: liveCars.length,
       fitnessScore: this.fitnessScore,
@@ -155,14 +155,14 @@ export class App {
     if (this.players.length > 1 && this.autolearn && liveCars.length == 0) {
       this.saveOnLocalStorage()
       this.init(window.APP_SIMULATIONS, window.APP_TRAFFIC)
-      return 
+      return
     }
 
     requestAnimationFrame(this.animate)
   }
 }
 
-export function debounce(func, timeout = 300){
+export function debounce(func, timeout = 300) {
   let timer;
   return (...args) => {
     clearTimeout(timer);
