@@ -60,9 +60,6 @@ window.changeFiles = (event) => {
 
 function processFile(file, reader) {
   const data = JSON.parse(reader)
-  console.log(data)
-  console.log(data.brain)
-  console.log(data.fitnessScore)
   localStorage.clear()
   if (data && data.brain && data.fitnessScore) {
     localStorage.setItem("bestBrain", JSON.stringify(data.brain));

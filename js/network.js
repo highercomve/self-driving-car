@@ -1,4 +1,6 @@
-export class NeuralNetwork {
+const numerOfCPU = navigator.hardwareConcurrency
+
+class NeuralNetwork {
   levels = []
 
   constructor(neuronCounts = []) {
@@ -52,7 +54,7 @@ export class NeuralNetwork {
   }
 }
 
-export class Level {
+class Level {
   weights = []
 
   constructor(inputCount, outputCount, lastLevel = false) {
@@ -116,18 +118,18 @@ export class Level {
   }
 }
 
-export function lessThanbias(sum, bias) {
+function lessThanbias(sum, bias) {
   return sum > bias ? 1 : 0
 }
-export function linearCalculation(sum, bias) {
+function linearCalculation(sum, bias) {
   return sum + bias > 0 ? 1 : 0
 }
 
-export function sumCalculation(sum, bias) {
+function sumCalculation(sum, bias) {
   return sum + bias
 }
 
-export function sigmoid(sum, bias) {
+function sigmoid(sum, bias) {
   const x = sum + bias
   return isNaN(x) ? 0 : (1 / (1 + (x * x)))
 }

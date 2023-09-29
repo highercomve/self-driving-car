@@ -1,3 +1,16 @@
+
+let workerList = [];
+
+if (window.Worker) {
+  for (let i = 0; i < window.navigator.hardwareConcurrency; i++) {
+    let newWorker = {
+      w: new Worker("js/networkworkers.js"),
+      inUse: false,
+    };
+    workerList.push(newWorker);
+  }
+}
+
 function lerp(A, B, t) {
   return A + (B - A) * t;
 }
@@ -41,6 +54,10 @@ function randomIntFromInterval(min, max) { // min and max included
   return Math.floor(Math.random() * (max - min + 1) + min)
 }
 
+function randomFloorFromInterval(min, max) { // min and max included 
+  return Math.random() * (max - min + 1) + min
+}
+
 function getRandomColor() {
   const hue = 290 + Math.random() * 260;
   return "hsl(" + hue + ", 100%, 60%)";
@@ -52,4 +69,22 @@ function getRGBA(value) {
   const G = R;
   const B = value > 0 ? 0 : 255;
   return "rgba(" + R + "," + G + "," + B + "," + alpha + ")";
+}
+
+window.workeractivated = false
+class NeuralNetworkPrediction {
+  static calculate(fn = console.log, inputs, network) {
+    if (workerList.length > 0 && window.workeractivated ) {
+      const worker = workerList.find((w) => !w.inUse) || workerList[0]
+      worker.inUse = true
+      worker.w.postMessage([inputs, network])
+      worker.w.onmessage = (e) => {
+        fn(e.data, network)
+        worker.inUse = false
+      }
+    } else {
+      const outputs = NeuralNetwork.feedForward(inputs, network)
+      fn(outputs, network)
+    }
+  }
 }

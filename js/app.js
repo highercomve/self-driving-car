@@ -2,7 +2,6 @@ import { Visualizer } from "./visualizer.js"
 import { Road } from './road.js'
 import { Car } from './car.js'
 import { CreateControls } from './controls.js'
-import { NeuralNetwork } from './network.js'
 import { Info } from './info.js'
 
 const bestReducer = (best, c, i) => {
@@ -35,7 +34,7 @@ export class App {
     this.iteration = Number(localStorage.getItem("iteration")) || 0
   }
 
-  static generateCars(N, ctx, road, controls, opts = { maxSpeed: 1.5 }) {
+  static generateCars(N, ctx, road, controls, opts = { maxSpeed: 2.5 }) {
     const cars = [];
     for (let i = 0; i < N; i++) {
       cars.push(new Car(
@@ -64,14 +63,15 @@ export class App {
       previousLane = lane
       const x = road.getLaneCenter(lane)
       const y = randomIntFromInterval(
-        -window.innerHeight + window.innerHeight / 3,
+        0 - 200,
         road.borders[0][0].y + window.innerHeight
       )
       const opts = {
-        maxSpeed: randomIntFromInterval(1, 1.5),
+        maxSpeed: randomFloorFromInterval(0.5, 1),
         hasSensor: false,
         hasBrain: false
       }
+      
       traffic.push(new Car(ctx, x, y, 30, 50, controls, opts, getRandomColor()))
     }
 
@@ -137,7 +137,7 @@ export class App {
     this.#setHeight()
 
     this.players.forEach((c) => c.update(this.road, this.traffic))
-    this.traffic.forEach((c) => c.update(this.road, []))
+    this.traffic.forEach((c) => c.update(this.road))
 
     const bestPlayerIndex = this.players.reduce(bestReducer, { y: 0, index: 0 })
     const liveCarsNumber = this.players.reduce(countLiveCars, 0)
@@ -153,7 +153,6 @@ export class App {
     this.ctx.translate(0, -bestPlayer.y + this.carCanvas.height * 0.7)
 
     this.road.draw()
-    this.traffic.forEach((car) => car.draw())
     
     this.ctx.globalAlpha = 0.1
     this.players.forEach((p) => {
@@ -162,9 +161,10 @@ export class App {
     })
     this.ctx.globalAlpha = 1
     bestPlayer.drawSensor = true
+    this.traffic.forEach((car) => car.draw())
     bestPlayer.draw()
     this.ctx.restore()
-
+    
     this.networkCtx.lineDashOffset = -1 * time / 50
     this.info.draw()
 
@@ -173,10 +173,12 @@ export class App {
     }
 
     const maxDistance = this.road.borders[0][0].y
-    if (bestPlayer.y <= maxDistance || (this.players.length > 1 && this.autolearn && liveCarsNumber == 0)) {
-      this.saveOnLocalStorage()
-      location.reload()
-      return
+    if (!window.workeractivated) {
+      if (bestPlayer.y <= maxDistance || (this.players.length > 1 && this.autolearn && liveCarsNumber == 0)) {
+        this.saveOnLocalStorage()
+        location.reload()
+        return
+      }
     }
 
     requestAnimationFrame(this.animate)

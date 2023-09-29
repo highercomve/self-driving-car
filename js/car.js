@@ -1,16 +1,15 @@
-import { NeuralNetwork } from './network.js'
 import { Sensor } from './sensor.js'
 
 const defaultCarOptions = {
   acc: 0.2,
-  maxSpeed: 2,
+  maxSpeed: 2.5,
   friction: 0.05,
   drawSensor: false,
   hasSensor: true,
   hasBrain: true
 }
 
-const angleSpeed = 1 / 200
+const angleSpeed = 1 / 100
 const TWO_PI = 2 * Math.PI
 export class Car {
   x = 0
@@ -79,12 +78,16 @@ export class Car {
     if (this.sensor) {
       this.sensor.update(road, traffic)
     }
-    if (this.brain && this.sensor) {
-      const offsets = this.getOffsets()
-      this.controls.update(NeuralNetwork.feedForward(offsets, this.brain))
-    }
 
-    this.#move()
+    if (this.brain && this.sensor) {
+      NeuralNetworkPrediction.calculate((o, network) => {
+        this.controls.update(o)
+        this.brain = network
+        this.#move()
+      }, this.getOffsets(), this.brain)
+    } else {
+      this.#move()
+    }
   }
 
   draw = () => {
