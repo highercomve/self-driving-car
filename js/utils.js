@@ -1,5 +1,6 @@
 
 let workerList = [];
+const numerOfCPU = navigator.hardwareConcurrency
 
 if (window.Worker) {
   for (let i = 0; i < window.navigator.hardwareConcurrency; i++) {
@@ -12,7 +13,7 @@ if (window.Worker) {
 }
 
 function lerp(A, B, t) {
-  return A + (B - A) * t;
+  return A + (t * (B - A));
 }
 
 function getIntersection(A, B, C, D) {
@@ -50,6 +51,23 @@ function polyIntersection(poly1, poly2) {
   return false
 }
 
+function polysIntersect(poly1, poly2) {
+  for (let i = 0; i < poly1.length - 1; i++) {
+    for (let j = 0; j < poly2.length - 1; j++) {
+      const touch = getIntersection(
+        poly1[i],
+        poly1[i + 1],
+        poly2[j],
+        poly2[j + 1]
+      );
+      if (touch) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 function randomIntFromInterval(min, max) { // min and max included 
   return Math.floor(Math.random() * (max - min + 1) + min)
 }
@@ -73,17 +91,20 @@ function getRGBA(value) {
 
 window.workeractivated = false
 class NeuralNetworkPrediction {
-  static calculate(fn = console.log, inputs, network) {
-    if (workerList.length > 0 && window.workeractivated ) {
+  static calculate(fn = console.log, inputs, brain) {
+    if (workerList.length > 0 && window.workeractivated) {
       const worker = workerList.find((w) => !w.inUse) || workerList[0]
       worker.inUse = true
-      worker.w.postMessage([inputs, network])
+      worker.w.postMessage([inputs, brain])
       worker.w.onmessage = (e) => {
-        fn(e.data, network)
+        const { outputs, network } = e.data
+        if (network.id === brain.id) {
+          fn(outputs, network)
+        }
         worker.inUse = false
       }
     } else {
-      const outputs = NeuralNetwork.feedForward(inputs, network)
+      const { outputs, network } = NeuralNetwork.feedForward(inputs, brain)
       fn(outputs, network)
     }
   }

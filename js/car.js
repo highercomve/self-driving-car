@@ -9,7 +9,7 @@ const defaultCarOptions = {
   hasBrain: true
 }
 
-const angleSpeed = 1 / 100
+const angleSpeed = 1 / 50
 const TWO_PI = 2 * Math.PI
 export class Car {
   x = 0
@@ -17,18 +17,20 @@ export class Car {
   width = 30
   height = 50
   color = "black"
-  poligon = []
+  polygon = []
   damaged = false
   sensor = undefined
   brain = undefined
+  id = 0
 
-  constructor(ctx, x, y, width = 30, height = 50, controls, opts = {}, color = "white") {
+  constructor(ctx, x, y, width = 30, height = 50, controls, opts = {}, color = "white", id = 0) {
     this.x = x
     this.y = y
     this.width = width
     this.height = height
     this.color = color
     this.ctx = ctx
+    this.id = 0
 
     const options = { ...defaultCarOptions, ...opts }
     this.speed = 0
@@ -46,8 +48,8 @@ export class Car {
     }
     if (options.hasBrain) {
       const hiddenLevel = window.APP_HIDDEN_LEVELS.split(',').map(x => Number(x)).filter(x => x > 0)
-      const levels = [this.sensor.rayCount + 2, ...hiddenLevel]
-      this.brain = new NeuralNetwork(levels)
+      const levels = [this.sensor.rayCount, ...hiddenLevel]
+      this.brain = new NeuralNetwork(levels, this.id)
     }
 
     this.#createMask()
@@ -57,22 +59,22 @@ export class Car {
   }
 
   getScore = (traffic = []) => {
-    return Math.abs(this.y / traffic.length) * (traffic.reduce((acc, t) => t.y > this.y ? acc + 1 : acc, 0) + 1)
+    return (this.speed / this.maxSpeed) * Math.abs(this.y / 1) * (traffic.reduce((acc, t) => t.y > this.y ? acc + 1 : acc, 0) + 0.03)
   }
 
   getOffsets = () => {
-    const theta = this.angle - TWO_PI * Math.floor((this.angle + Math.PI) / TWO_PI)
     return [...this.sensor.readings.map(
       s => s == null ? 0 : 1 - s.offset
-    ), theta, this.speed / this.maxSpeed]
+    )]
   }
 
   update = (road, traffic = []) => {
     if (this.damaged) {
       return
     }
-    
-    this.poligon = this.#createPolygon()
+    this.#move()
+
+    this.polygon = this.#createPolygon()
     this.damaged = this.#assessDamage(road.borders, traffic)
 
     if (this.sensor) {
@@ -80,13 +82,10 @@ export class Car {
     }
 
     if (this.brain && this.sensor) {
-      NeuralNetworkPrediction.calculate((o, network) => {
+      NeuralNetworkPrediction.calculate((o, brain) => {
         this.controls.update(o)
-        this.brain = network
-        this.#move()
+        this.brain = brain
       }, this.getOffsets(), this.brain)
-    } else {
-      this.#move()
     }
   }
 
@@ -206,18 +205,23 @@ export class Car {
 
   #assessDamage(roadBorders, traffic) {
     for (let i = 0; i < roadBorders.length; i++) {
-      if (polyIntersection(this.poligon, roadBorders[i])) {
-        return true
+      if (polysIntersect(
+         [...this.polygon, this.polygon[0]],
+         roadBorders[i])
+      ) {
+         return true;
       }
-    }
-
-    for (let i = 0; i < traffic.length; i++) {
-      if (polyIntersection(this.poligon, traffic[i].poligon)) {
-        return true
+   }
+   for (let i = 0; i < traffic.length; i++) {
+      const poly = traffic[i].polygon;
+      if (polysIntersect(
+         [...this.polygon, this.polygon[0]],
+         [...poly, poly[0]])
+      ) {
+         return true;
       }
-    }
-
-    return false
+   }
+   return false;
   }
 
   #drawMask(color) {

@@ -5,7 +5,7 @@ export class Sensor {
     this.car = car
     this.rayCount = rayCount === 0 ? window.APP_SENSORS : rayCount
     this.rayLength = 200
-    this.raySpread = Math.PI / 1.5
+    this.raySpread = Math.PI / 1.8
 
     this.ctx = ctx
     this.rays = []
@@ -59,15 +59,22 @@ export class Sensor {
   #getReading(ray, roadBorders, traffic = []) {
     let touches = [];
 
-    for (let i = 0; i < roadBorders.length; i++) {
-      const touch = getIntersection(ray[0], ray[1], roadBorders[i][0], roadBorders[i][1])
-      if (touch) {
-        touches.push(touch);
+    roadBorders.forEach(border => {
+      for (let i = 1; i < border.length; i++) {
+        const touch = getIntersection(
+          ray[0],
+          ray[1],
+          border[i - 1],
+          border[i]
+        );
+        if (touch) {
+          touches.push(touch);
+        }
       }
-    }
+    });
 
     for (let i = 0; i < traffic.length; i++) {
-      const poly = traffic[i].poligon
+      const poly = traffic[i].polygon
       for (let j = 0; j < poly.length; j++) {
         const touch = getIntersection(ray[0], ray[1], poly[j], poly[(j + 1) % poly.length])
         if (touch) {
@@ -78,7 +85,7 @@ export class Sensor {
 
     if (touches.length == 0) {
       return null;
-    } else { 
+    } else {
       const minOffset = Math.min(...touches.map(e => e.offset));
       return touches.find(e => e.offset == minOffset);
     }

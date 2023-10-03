@@ -18,7 +18,7 @@ export class Info {
 
   draw = () => {
     this.carCountElm.innerText = this.liveCars
-    this.bestScoreElm.innerText = this.fitnessScore
+    this.bestScoreElm.innerText = this.fitnessScore.toFixed(2)
     this.iterationElm.innerText = this.iteration
     this.currentScoreElem.innerText = this.currentScore
   }

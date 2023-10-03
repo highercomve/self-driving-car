@@ -1,9 +1,9 @@
-const numerOfCPU = navigator.hardwareConcurrency
-
 class NeuralNetwork {
+  id = 0
   levels = []
 
-  constructor(neuronCounts = []) {
+  constructor(neuronCounts = [], id = 0) {
+    this.id = 0
     neuronCounts.push(4)
     for (let i = 0; i < neuronCounts.length - 1; i++) {
       this.levels.push(
@@ -29,7 +29,7 @@ class NeuralNetwork {
       )
     }
 
-    return outputs
+    return { outputs, network }
   }
 
   static mutate(network, amount = 1) {

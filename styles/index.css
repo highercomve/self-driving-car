@@ -6,12 +6,29 @@ body {
 
 #content {
   display: flex;
+  justify-content: justify-content-between;
+  align-items: justify-content-between;
+}
+
+#app-container {
+  width: 50%;
+  min-width: 300px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#network-visualizer {
+  width: 30%;
+  min-width: 300px;
+  display: flex;
   justify-content: center;
   align-items: center;
 }
 
 #info {
-  width: 300px;
+  width: 20%;
+  min-width: 200px;
   padding-left: 1em;
   padding-right: 1em;
 }
@@ -37,7 +54,7 @@ button:hover {
 }
 
 #app {
-  background-color: rgb(50, 50, 50);
+  background-color: rgb(80, 80, 80);
 }
 
 #network {
