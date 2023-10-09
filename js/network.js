@@ -22,10 +22,18 @@ class NeuralNetwork {
       network.levels[0]
     )
 
-    for (let i = 1; i < network.levels.length; i++) {
+    for (let i = 1; i < network.levels.length -1; i++) {
       outputs = Level.feedForward(
         outputs,
         network.levels[i]
+      )
+    }
+
+    if (network.levels.length > 1) {
+      outputs = Level.feedForward(
+        outputs,
+        network.levels[network.levels.length -1],
+        linearCalculation
       )
     }
 
@@ -96,7 +104,7 @@ class Level {
     return (is > 0.6) ? 1 : 0
   }
 
-  static feedForward(inputs, level, lastLevel = false) {
+  static feedForward(inputs, level, activationFn = linearCalculation) {
     for (let i = 0; i < level.inputs.length; i++) {
       level.inputs[i] = inputs[i]
     }
@@ -107,11 +115,7 @@ class Level {
         sum += level.inputs[j] * level.weights[j][i]
       }
 
-      level.outputs[i] = linearCalculation(sum, level.biases[i])
-    }
-
-    if (lastLevel) {
-      level.outputs = Level.lastFeed(level.outputs)
+      level.outputs[i] = activationFn(sum, level.biases[i])
     }
   
     return level.outputs
@@ -122,11 +126,22 @@ function lessThanbias(sum, bias) {
   return sum > bias ? 1 : 0
 }
 function linearCalculation(sum, bias) {
-  return sum + bias > 0 ? 1 : 0
+  return sum + bias >= 0 ? 1 : 0
 }
 
 function sumCalculation(sum, bias) {
   return sum + bias
+}
+
+function ReLU(sum, bias) {
+  return Math.max(0, sum + bias)
+}
+
+function tanh(sum, bias) {
+  const x = sum + bias
+  const e = Math.exp(2*x);
+  
+  return (e - 1) / (e + 1) ;
 }
 
 function sigmoid(sum, bias) {

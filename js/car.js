@@ -41,6 +41,8 @@ export class Car {
     this.drawSensor = options.drawSensor
     this.img = new Image()
     this.img.src = "public/car.png"
+    this.hasSensor = options.hasSensor
+    this.hasBrain = options.hasBrain
 
     this.controls = controls
     if (options.hasSensor) {
@@ -48,7 +50,7 @@ export class Car {
     }
     if (options.hasBrain) {
       const hiddenLevel = window.APP_HIDDEN_LEVELS.split(',').map(x => Number(x)).filter(x => x > 0)
-      const levels = [this.sensor.rayCount, ...hiddenLevel]
+      const levels = [this.sensor.rayCount +1, ...hiddenLevel]
       this.brain = new NeuralNetwork(levels, this.id)
     }
 
@@ -59,13 +61,14 @@ export class Car {
   }
 
   getScore = (traffic = []) => {
-    return (this.speed / this.maxSpeed) * Math.abs(this.y / 1) * (traffic.reduce((acc, t) => t.y > this.y ? acc + 1 : acc, 0) + 0.03)
+    return Math.abs(this.y / 1) * Math.abs((this.speed / this.maxSpeed)) * (traffic.reduce((acc, t) => t.y > this.y ? acc + 1 : acc, 0) + 0.03)
   }
 
   getOffsets = () => {
     return [...this.sensor.readings.map(
       s => s == null ? 0 : 1 - s.offset
-    )]
+    ), (this.speed / this.maxSpeed)]
+    //this.maxSpeed / (this.speed || 1)
   }
 
   update = (road, traffic = []) => {
@@ -75,7 +78,9 @@ export class Car {
     this.#move()
 
     this.polygon = this.#createPolygon()
-    this.damaged = this.#assessDamage(road.borders, traffic)
+    if (this.hasSensor) {
+      this.damaged = this.#assessDamage(road.borders, traffic)
+    }
 
     if (this.sensor) {
       this.sensor.update(road, traffic)

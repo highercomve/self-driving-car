@@ -42,7 +42,7 @@ export class App {
     for (let i = 0; i < N; i++) {
       cars.push(new Car(
         ctx,
-        road.getLaneCenter(0),
+        road.getMiddleOfRoad(),
         0,
         30,
         50,
@@ -73,11 +73,11 @@ export class App {
       previousLane = lane
       const x = road.getLaneCenter(lane)
       const y = randomIntFromInterval(
-        0 + 100,
-        road.borders[0][0].y + window.innerHeight
+        0 - 200,
+        road.borders[0][0].y + 2 * window.innerHeight
       )
       const opts = {
-        maxSpeed: randomFloorFromInterval(0.5, 1),
+        maxSpeed: randomFloorFromInterval(1, 1.2),
         hasSensor: false,
         hasBrain: false
       }
@@ -100,14 +100,27 @@ export class App {
     location.reload()
   }
 
-  saveOnLocalStorage = (force = false) => {
-    const bestPlayerIndex = this.players.reduce(bestReducer, { y: 0, index: 0 }, true)
-    const bestPlayer = this.players[bestPlayerIndex.index] || this.players[0]
+  bestScoredPlayer = () => {
+    let maxScore = -Infinity
+    let bestPlayer = null
+    for (let i = 0; i < this.players.length; i++) {
+      const score = this.players[i].getScore()
+      if (score > maxScore) {
+        bestPlayer = this.players[i]
+        maxScore = score
+      }
+    }
 
+    return bestPlayer
+  }
+
+  saveOnLocalStorage = (force = false) => {
+    const bestPlayer = this.bestScoredPlayer()
     const currentScore = bestPlayer.getScore(this.traffic)
-    localStorage.setItem("iteration", this.iteration);
+    const bestScore = Number(localStorage.getItem("fitnessScore")) || 0
     
-    if (force || currentScore >= this.fitnessScore) {
+    localStorage.setItem("iteration", this.iteration);
+    if (force || currentScore >= bestScore) {
       this.fitnessScore = currentScore
       localStorage.setItem("bestBrain", JSON.stringify(bestPlayer.brain));
       localStorage.setItem("fitnessScore", this.fitnessScore);
@@ -122,7 +135,7 @@ export class App {
 
     this.ctx = this.carCanvas.getContext("2d")
     this.networkCtx = this.networkCanvas.getContext("2d")
-    this.road = new Road(this.ctx, 180, 140, 2)
+    this.road = new Road(this.ctx, 180, 140, 3)
 
     this.players = App.generateCars(
       simulations,
