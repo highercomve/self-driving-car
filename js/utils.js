@@ -1,6 +1,7 @@
 
 let workerList = [];
 const numerOfCPU = navigator.hardwareConcurrency
+const _2PI = Math.PI * 2;
 
 if (window.Worker) {
   for (let i = 0; i < window.navigator.hardwareConcurrency; i++) {
@@ -68,6 +69,20 @@ function polysIntersect(poly1, poly2) {
   return false;
 }
 
+function randomProb() {
+  return (Math.random() * 2) - 1
+}
+
+function randomGaussian(mean, std) {
+  var u1 = Math.random();
+  var u2 = Math.random();
+
+  var z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(_2PI * u2);
+  // var z1 = Math.sqrt(-2.0 * Math.log(u1)) * Math.sin(_2PI * u2);
+
+  return z0 * std + mean;
+}
+
 function randomIntFromInterval(min, max) { // min and max included 
   return Math.floor(Math.random() * (max - min + 1) + min)
 }
@@ -87,6 +102,10 @@ function getRGBA(value) {
   const G = R;
   const B = value > 0 ? 0 : 255;
   return "rgba(" + R + "," + G + "," + B + "," + alpha + ")";
+}
+
+function copyObject(obj) {
+  return JSON.parse(JSON.stringify(obj))
 }
 
 window.workeractivated = false

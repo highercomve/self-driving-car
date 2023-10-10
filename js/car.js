@@ -21,16 +21,18 @@ export class Car {
   damaged = false
   sensor = undefined
   brain = undefined
+  fitness = 0
+  score = 0
   id = 0
 
-  constructor(ctx, x, y, width = 30, height = 50, controls, opts = {}, color = "white", id = 0) {
+  constructor(ctx, x, y, width = 30, height = 50, controls, opts = {}, color = "white", brain, id = 0) {
     this.x = x
     this.y = y
     this.width = width
     this.height = height
     this.color = color
     this.ctx = ctx
-    this.id = 0
+    this.id = id
 
     const options = { ...defaultCarOptions, ...opts }
     this.speed = 0
@@ -48,10 +50,14 @@ export class Car {
     if (options.hasSensor) {
       this.sensor = new Sensor(this.ctx, this)
     }
-    if (options.hasBrain) {
+    if (options.hasBrain && !brain) {
       const hiddenLevel = window.APP_HIDDEN_LEVELS.split(',').map(x => Number(x)).filter(x => x > 0)
-      const levels = [this.sensor.rayCount +1, ...hiddenLevel]
+      const levels = [this.sensor.rayCount, this.sensor.rayCount * 2, ...hiddenLevel]
       this.brain = new NeuralNetwork(levels, this.id)
+    }
+
+    if (brain) {
+      this.brain = brain
     }
 
     this.#createMask()
@@ -60,22 +66,26 @@ export class Car {
     }
   }
 
+  mutate = (rate) => {
+    this.brain.mutate(rate)
+  }
+
   getScore = (traffic = []) => {
-    return Math.abs(this.y / 1) * Math.abs((this.speed / this.maxSpeed)) * (traffic.reduce((acc, t) => t.y > this.y ? acc + 1 : acc, 0) + 0.03)
+    return this.score
+    // return Math.abs(this.y / 1) * Math.abs((this.speed / this.maxSpeed)) * (traffic.reduce((acc, t) => t.y > this.y ? acc + 1 : acc, 0) + 0.03)
   }
 
   getOffsets = () => {
-    return [...this.sensor.readings.map(
-      s => s == null ? 0 : 1 - s.offset
-    ), (this.speed / this.maxSpeed)]
-    //this.maxSpeed / (this.speed || 1)
+    return [
+      ...this.sensor.readings.map(s => s == null ? 0 : 1 - s.offset)
+    ]
   }
 
   update = (road, traffic = []) => {
     if (this.damaged) {
       return
     }
-    this.#move()
+    this.score += 0.1 * (this.speed > 0 ? 1 : 0)
 
     this.polygon = this.#createPolygon()
     if (this.hasSensor) {
@@ -90,8 +100,10 @@ export class Car {
       NeuralNetworkPrediction.calculate((o, brain) => {
         this.controls.update(o)
         this.brain = brain
-      }, this.getOffsets(), this.brain)
+      }, this.getOffsets(), copyObject(this.brain))
     }
+
+    this.#move()
   }
 
   draw = () => {

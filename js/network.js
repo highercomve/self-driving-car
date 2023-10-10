@@ -2,74 +2,98 @@ class NeuralNetwork {
   id = 0
   levels = []
 
-  constructor(neuronCounts = [], id = 0) {
-    this.id = 0
-    neuronCounts.push(4)
-    for (let i = 0; i < neuronCounts.length - 1; i++) {
+  constructor(levels = [], id = 0, output = 4) {
+    this.id = id
+    levels.push(output)
+    for (let i = 0; i < levels.length - 1; i++) {
       this.levels.push(
         new Level(
-          neuronCounts[i],
-          neuronCounts[i + 1],
-          (i - neuronCounts.length - 2) <= 0
+          levels[i],
+          levels[i + 1],
+          (i - levels.length - 2) <= 0
         )
       )
     }
   }
 
+  static fromJson(jsonBrain) {
+    const n = new NeuralNetwork([], jsonBrain.id)
+    n.levels = jsonBrain.levels.map((level) => Level.fromJson(level))
+    return n
+  }
+
   static feedForward(inputs, network) {
     let outputs = Level.feedForward(
       inputs,
-      network.levels[0]
+      network.levels[0],
+      network.levels.length == 1 ? linearCalculation : undefined
     )
 
-    for (let i = 1; i < network.levels.length -1; i++) {
+    for (let i = 1; i < network.levels.length; i++) {
       outputs = Level.feedForward(
         outputs,
         network.levels[i]
       )
     }
 
-    if (network.levels.length > 1) {
-      outputs = Level.feedForward(
-        outputs,
-        network.levels[network.levels.length -1],
-        linearCalculation
-      )
-    }
+    // if (network.levels.length > 1) {
+    //   outputs = Level.feedForward(
+    //     outputs,
+    //     network.levels[network.levels.length -1],
+    //     linearCalculation
+    //   )
+    // }
 
     return { outputs, network }
   }
 
-  static mutate(network, amount = 1) {
-    network.levels.forEach(level => {
-      for (let i = 0; i < level.biases.length; i++) {
-        level.biases[i] = lerp(
-          level.biases[i],
-          Math.random() * 2 - 1,
-          amount
+  mutate = (rate = 1) => {
+    console.log(this)
+    for (let x = 0; x < this.levels.length; x++) {
+      for (let i = 0; i < this.levels[x].biases.length; i++) {
+        this.levels[x].biases[i] = Level.mutate(
+          this.levels[x].biases[i],
+          rate
         )
       }
-      for (let i = 0; i < level.weights.length; i++) {
-        for (let j = 0; j < level.weights[i].length; j++) {
-          level.weights[i][j] = lerp(
-            level.weights[i][j],
-            Math.random() * 2 - 1,
-            amount
+      for (let i = 0; i < this.levels[x].weights.length; i++) {
+        for (let j = 0; j < this.levels[x].weights[i].length; j++) {
+          this.levels[x].weights[i][j] = Level.mutate(
+            this.levels[x].weights[i][j],
+            rate
           )
         }
       }
-    });
+    }
+  }
+
+  static mutate(network, rate = 1) {
+    for (let x = 0; x < network.levels.length; x++) {
+      for (let i = 0; i < network.levels[x].biases.length; i++) {
+        network.levels[x].biases[i] = Level.mutate(
+          network.levels[x].biases[i],
+          rate
+        )
+      }
+      for (let i = 0; i < network.levels[x].weights.length; i++) {
+        for (let j = 0; j < network.levels[x].weights[i].length; j++) {
+          network.levels[x].weights[i][j] = Level.mutate(
+            network.levels[x].weights[i][j],
+            rate
+          )
+        }
+      }
+    }
   }
 }
 
 class Level {
   weights = []
 
-  constructor(inputCount, outputCount, lastLevel = false) {
+  constructor(inputCount = 0, outputCount = 0) {
     this.inputs = new Array(inputCount)
     this.outputs = new Array(outputCount)
     this.biases = new Array(outputCount)
-    this.lastLevel = lastLevel
   
     for (let i = 0; i < inputCount; i++) {
       this.weights[i] = new Array(outputCount)
@@ -78,15 +102,29 @@ class Level {
     Level.randomize(this)
   }
 
+  static fromJson(levelJson) {
+    const level = new Level()
+    level.inputs = copyObject(levelJson.inputs)
+    level.outputs = copyObject(levelJson.outputs)
+    level.biases = copyObject(levelJson.biases)
+    level.weights = copyObject(levelJson.weights)
+
+    return level
+  }
+
+  static mutate(val, rate) {
+    return newRandIf(val, rate)
+  }
+
   static randomize(level) {
     for (let i = 0; i < level.inputs.length; i++) {
       for (let j = 0; j < level.outputs.length; j++) {
-        level.weights[i][j] = Math.random() * 2 - 1
+        level.weights[i][j] = randomProb()
       }
     }
 
     for (let i = 0; i < level.biases.length; i++) {
-      level.biases[i] = Math.random() * 2 - 1
+      level.biases[i] = randomProb()
     }
   }
 
@@ -147,4 +185,34 @@ function tanh(sum, bias) {
 function sigmoid(sum, bias) {
   const x = sum + bias
   return isNaN(x) ? 0 : (1 / (1 + (x * x)))
+}
+
+function varitionMutation(val, rate) {
+  const variationSign = (randomProb()) > 0 ? 1 : -1
+  let newVal = val + (val * variationSign * rate)
+  if (newVal > 1) {
+    newVal =  val + (val * -1 * rate)
+  }
+
+  if (newVal < -1) {
+    newVal =  val + (val * +1 * rate)
+  }
+  
+  return (newVal > 1 || newVal < -1) ? randomProb() : newVal
+}
+
+function newRandIf(val, rate) {
+  if (Math.random() > rate) {
+    return val + randomGaussian(0, rate)
+  }
+
+  return val
+}
+
+function randVaritionMutation(val, rate) {
+  if (Math.random() > rate) {
+    return varitionMutation(val, rate)
+  }
+
+  return val
 }

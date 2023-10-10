@@ -23,7 +23,8 @@ export class App {
   networkCtx = null
   controls = null
   bestPlayer = null
-  fitnessScore = 0
+  bestScore = 0
+  bestFitness = 0
   iteration = 0
   startAt = 0
 
@@ -33,13 +34,22 @@ export class App {
     this.autolearn = autolearn
     this.showNetwork = showNetwork
     this.maxDistance = 0
-    this.fitnessScore = Number(localStorage.getItem("fitnessScore")) || 0
+    this.bestScore = Number(localStorage.getItem("brainScore")) || 0
     this.iteration = Number(localStorage.getItem("iteration")) || 0
   }
 
-  static generateCars(N, ctx, road, controls, opts = { maxSpeed: 3 }) {
+  static generateCars(N, ctx, road, controls, opts = { maxSpeed: 3 }, brainJson) {
     const cars = [];
     for (let i = 0; i < N; i++) {
+      let brain
+      if (brainJson) {
+        brain = copyObject(brainJson)
+        if (i > 0) {
+          NeuralNetwork.mutate(brain, window.APP_DIVERGENCE)
+        }
+        brain.id = i
+      }
+
       cars.push(new Car(
         ctx,
         road.getMiddleOfRoad(),
@@ -49,6 +59,7 @@ export class App {
         controls,
         opts,
         "blue",
+        brain,
         i
       ));
     }
@@ -60,9 +71,6 @@ export class App {
       return []
     }
     let controls = CreateControls()
-    // if (localStorage.getItem("bestBrain")) {
-    //   controls = CreateControls("AI")
-    // }
     const traffic = []
     let previousLane = -1
     for (let i = 0; i < howMany; i++) {
@@ -92,19 +100,20 @@ export class App {
     localStorage.clear()
     this.bestPlayer = null
     this.iteration = 0
-    this.fitnessScore = 0
+    this.bestScore = 0
   }
 
   iterate = () => {
     this.saveOnLocalStorage()
+    // this.init(window.APP_SIMULATIONS, window.APP_TRAFFIC)
     location.reload()
   }
 
   bestScoredPlayer = () => {
     let maxScore = -Infinity
-    let bestPlayer = null
+    let bestPlayer = this.players[0]
     for (let i = 0; i < this.players.length; i++) {
-      const score = this.players[i].getScore()
+      const score = this.players[i].score
       if (score > maxScore) {
         bestPlayer = this.players[i]
         maxScore = score
@@ -114,16 +123,27 @@ export class App {
     return bestPlayer
   }
 
-  saveOnLocalStorage = (force = false) => {
+  setPlayerFitness = () => {
+    const sum = this.players.reduce((acc, player) => acc + player.score, 0)
+    
+    this.players.forEach((player) => {
+      player.fitness = player.score / (sum > 0 ? sum : 1)
+    })
+  }
+
+  saveOnLocalStorage = (force = true) => {
     const bestPlayer = this.bestScoredPlayer()
     const currentScore = bestPlayer.getScore(this.traffic)
-    const bestScore = Number(localStorage.getItem("fitnessScore")) || 0
+    const bestScore = Number(localStorage.getItem("brainScore")) || 0
+    // const bestFitness = Number(localStorage.getItem("brainFitness")) || 0
     
     localStorage.setItem("iteration", this.iteration);
     if (force || currentScore >= bestScore) {
-      this.fitnessScore = currentScore
+      this.bestScore = bestPlayer.score
+      this.bestFitness = bestPlayer.fitness
       localStorage.setItem("bestBrain", JSON.stringify(bestPlayer.brain));
-      localStorage.setItem("fitnessScore", this.fitnessScore);
+      localStorage.setItem("brainScore", this.bestScore);
+      localStorage.setItem("brainFitness", this.bestFitness);
     }
   }
 
@@ -141,21 +161,12 @@ export class App {
       simulations,
       this.ctx,
       this.road,
-      CreateControls("AI")
+      CreateControls("AI"),
+      undefined,
+      localStorage.getItem("bestBrain") ? JSON.parse(localStorage.getItem("bestBrain")) : undefined
     )
 
     this.traffic = App.generateTraffic(this.ctx, this.road, trafficNumber)
-    
-    if (localStorage.getItem("bestBrain")) {
-      for (let i = 0; i < this.players.length; i++) {
-        this.players[i].brain = JSON.parse(localStorage.getItem("bestBrain"))
-        this.players[i].brain.id = i
-        if (i > 0) {
-          NeuralNetwork.mutate(this.players[i].brain, window.APP_DIVERGENCE)
-        }
-      }
-    }
-
     this.info = new Info(this.players.length)
     this.animate()
   }
@@ -177,9 +188,9 @@ export class App {
 
     this.info.update({
       liveCars: liveCarsNumber,
-      fitnessScore: this.fitnessScore,
+      bestScore: this.bestScore,
       iteration: this.iteration,
-      currentScore: bestPlayer.getScore(this.traffic)
+      currentScore: bestPlayer.score
     })
     this.ctx.save()
     this.ctx.translate(0, -bestPlayer.y + this.carCanvas.height * 0.7)
@@ -210,6 +221,8 @@ export class App {
     const maxDistance = this.road.borders[0][0].y
     const now = new Date()
     const timeSinceInit = now.getTime() - this.startAt.getTime()
+
+    this.setPlayerFitness()
     if (timeSinceInit > minTime) {
       if (bestPlayer.y <= maxDistance || (this.players.length > 1 && this.autolearn && liveCarsNumber == 0)) {
         return this.iterate()
