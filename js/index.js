@@ -27,10 +27,11 @@ window.exportModel = () => {
   const blob = new Blob([JSON.stringify({ brain, score }, null, 2)], {
     type: "application/json",
   });
-  var file = window.URL.createObjectURL(blob)
-  var a = document.createElement('a')
+  const file = window.URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  const now = new Date()
   a.href = file
-  a.download = `model-score-${fitnessScore}.json`
+  a.download = `model-score-${score.toFixed(2)}-${now.toISOString()}.json`
   a.target = '_black'
   a.referrerPolicy = 'noopener,noreferrer'
   a.click()
