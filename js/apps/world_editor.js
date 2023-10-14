@@ -230,7 +230,7 @@ export class App {
          const now = new Date()
          const timeSinceInit = now.getTime() - this.startAt.getTime()
          if (timeSinceInit > minTime) {
-            if (bestPlayer.y <= maxDistance || (this.players.length > 1 && this.autolearn && liveCarsNumber == 0)) {
+            if (this.players.length > 1 && this.autolearn && liveCarsNumber == 0) {
               return this.iterate()
             }
           }
