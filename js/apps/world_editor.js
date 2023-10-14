@@ -11,7 +11,7 @@ const minTime = 10000
 const maxTime = 600000
 
 const bestReducer = (best, c, i, withoutDamage = false) => {
-   const better = (c.score < best.score) && (!c.damaged || withoutDamage)
+   const better = (c.score > best.score) && (!c.damaged || withoutDamage)
    best.score = better ? c.score : best.score
    best.index = better ? i : best.index
    return best
@@ -202,6 +202,7 @@ export class App {
       this.graphEditor.display(this.ctx);
 
       if (this.world.roadBorders.length > 0 && this.players.length > 0) {
+         this.players.forEach((c) => c.update(this.world.roadBorders, this.traffic));
          const bestPlayerIndex = this.players.reduce(bestReducer, { score: 0, index: 0 }, false)
          const liveCarsNumber = this.players.reduce(countLiveCars, 0)
          const bestPlayer = this.players[bestPlayerIndex.index] || this.players[0]
@@ -212,8 +213,6 @@ export class App {
             iteration: this.iteration,
             currentScore: bestPlayer.score
          })
-
-         this.players.forEach((c) => c.update(this.world.roadBorders, this.traffic));
 
          this.ctx.globalAlpha = 0.1
          this.players.forEach((p) => {
