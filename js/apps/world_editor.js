@@ -8,8 +8,8 @@ import { Visualizer } from "../visualizer.js"
 import { Info } from '../info.js'
 
 const bestReducer = (best, c, i, withoutDamage = false) => {
-   const better = (c.y < best.y) && (!c.damaged || withoutDamage)
-   best.y = better ? c.y : best.y
+   const better = (c.score < best.score) && (!c.damaged || withoutDamage)
+   best.score = better ? c.score : best.score
    best.index = better ? i : best.index
    return best
 }
