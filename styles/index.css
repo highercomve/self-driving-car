@@ -10,7 +10,7 @@ body {
   align-items: justify-content-between;
 }
 
-#app-container {
+#world-container {
   width: 50%;
   min-width: 300px;
   display: flex;
@@ -53,8 +53,10 @@ button:hover {
   color: white;
 }
 
-#app {
-  background-color: rgb(80, 80, 80);
+#world {
+  background-color: rgb(161, 161, 161);
+  padding: 0;
+  margin: 0;
 }
 
 #network {

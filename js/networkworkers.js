@@ -1,6 +1,6 @@
 importScripts("network.js")
 
 onmessage = (e) => {
-  const [inputs, network] = e.data
-  postMessage(NeuralNetwork.feedForward(inputs, network));
+  const [inputs, brain] = e.data
+  postMessage(NeuralNetwork.feedForward(inputs, brain));
 };

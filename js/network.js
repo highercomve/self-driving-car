@@ -36,19 +36,10 @@ class NeuralNetwork {
       )
     }
 
-    // if (network.levels.length > 1) {
-    //   outputs = Level.feedForward(
-    //     outputs,
-    //     network.levels[network.levels.length -1],
-    //     linearCalculation
-    //   )
-    // }
-
     return { outputs, network }
   }
 
   mutate = (rate = 1) => {
-    console.log(this)
     for (let x = 0; x < this.levels.length; x++) {
       for (let i = 0; i < this.levels[x].biases.length; i++) {
         this.levels[x].biases[i] = Level.mutate(

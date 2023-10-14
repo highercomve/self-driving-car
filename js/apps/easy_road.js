@@ -1,14 +1,14 @@
-import { Visualizer } from "./visualizer.js"
-import { Road } from './road.js'
-import { Car } from './car.js'
-import { CreateControls } from './controls.js'
-import { Info } from './info.js'
+import { Visualizer } from "../visualizer.js"
+import { Road } from '../road.js'
+import { Car } from '../car/basic.js'
+import { CreateControls } from '../controls.js'
+import { Info } from '../info.js'
 
 const minTime = 10000
 const maxTime = 600000
 const bestReducer = (best, c, i, withoutDamage = false) => {
   const better = (c.y < best.y) && (!c.damaged || withoutDamage)
-  best.y =  better ? c.y : best.y
+  best.y = better ? c.y : best.y
   best.index = better ? i : best.index
   return best
 }
@@ -89,7 +89,7 @@ export class App {
         hasSensor: false,
         hasBrain: false
       }
-      
+
       traffic.push(new Car(ctx, x, y, 30, 50, controls, opts, getRandomColor()))
     }
 
@@ -125,7 +125,7 @@ export class App {
 
   setPlayerFitness = () => {
     const sum = this.players.reduce((acc, player) => acc + player.score, 0)
-    
+
     this.players.forEach((player) => {
       player.fitness = player.score / (sum > 0 ? sum : 1)
     })
@@ -136,7 +136,7 @@ export class App {
     const currentScore = bestPlayer.getScore(this.traffic)
     const bestScore = Number(localStorage.getItem("brainScore")) || 0
     // const bestFitness = Number(localStorage.getItem("brainFitness")) || 0
-    
+
     localStorage.setItem("iteration", this.iteration);
     if (force || currentScore >= bestScore) {
       this.bestScore = bestPlayer.score
@@ -179,8 +179,8 @@ export class App {
   animate = (time) => {
     this.#setHeight()
 
-    this.players.forEach((c) => c.update(this.road, this.traffic))
-    this.traffic.forEach((c) => c.update(this.road))
+    this.players.forEach((c) => c.update(this.road.borders, this.traffic))
+    this.traffic.forEach((c) => c.update(this.road.borders))
 
     const bestPlayerIndex = this.players.reduce(bestReducer, { y: 0, index: 0 }, false)
     const liveCarsNumber = this.players.reduce(countLiveCars, 0)
@@ -196,19 +196,19 @@ export class App {
     this.ctx.translate(0, -bestPlayer.y + this.carCanvas.height * 0.7)
 
     this.road.draw()
-    
+
     this.ctx.globalAlpha = 0.1
     this.players.forEach((p) => {
       p.drawSensor = false
       p.draw()
     })
-    
+
     this.ctx.globalAlpha = 1
     bestPlayer.drawSensor = true
 
     this.traffic.forEach((car) => car.draw())
     bestPlayer.draw()
-    
+
     this.ctx.restore()
 
     this.networkCtx.lineDashOffset = -1 * time / 50

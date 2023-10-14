@@ -1,4 +1,4 @@
-import { Sensor } from './sensor.js'
+import { Sensor } from '../sensor/advanced_rays.js'
 
 const defaultCarOptions = {
   acc: 0.2,
@@ -36,7 +36,7 @@ export class Car {
 
     const options = { ...defaultCarOptions, ...opts }
     this.speed = 0
-    this.angle = 0
+    this.angle = -Math.PI/2
     this.acceleration = options.acc
     this.maxSpeed = options.maxSpeed
     this.friction = options.friction
@@ -81,7 +81,7 @@ export class Car {
     ]
   }
 
-  update = (road, traffic = []) => {
+  update = (roadBorders, traffic = []) => {
     if (this.damaged) {
       return
     }
@@ -89,21 +89,23 @@ export class Car {
 
     this.polygon = this.#createPolygon()
     if (this.hasSensor) {
-      this.damaged = this.#assessDamage(road.borders, traffic)
+      this.damaged = this.#assessDamage(roadBorders, traffic)
     }
 
     if (this.sensor) {
-      this.sensor.update(road, traffic)
+      this.sensor.update(roadBorders, traffic)
     }
 
     if (this.brain && this.sensor) {
-      NeuralNetworkPrediction.calculate((o, brain) => {
-        this.controls.update(o)
-        this.brain = brain
-      }, this.getOffsets(), copyObject(this.brain))
+      NeuralNetworkPrediction.calculate(this.updateFromPrediction, this.getOffsets(), copyObject(this.brain))
     }
 
     this.#move()
+  }
+
+  updateFromPrediction = (o, brain) => {
+    this.controls.update(o)
+    this.brain = brain
   }
 
   draw = () => {
@@ -221,11 +223,10 @@ export class Car {
 
 
   #assessDamage(roadBorders, traffic) {
-    for (let i = 0; i < roadBorders.length; i++) {
-      if (polysIntersect(
-         [...this.polygon, this.polygon[0]],
-         roadBorders[i])
-      ) {
+    const boarders = roadBorders.map((s) => [s.p1, s.p2]);
+    for (let i = 0; i < boarders.length; i++) {
+      const intersect = polysIntersect(this.polygon, boarders[i])
+      if (intersect) {
          return true;
       }
    }

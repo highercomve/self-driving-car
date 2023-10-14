@@ -1,16 +1,9 @@
 
-let workerList = [];
 const numerOfCPU = navigator.hardwareConcurrency
 const _2PI = Math.PI * 2;
 
-if (window.Worker) {
-  for (let i = 0; i < window.navigator.hardwareConcurrency; i++) {
-    let newWorker = {
-      w: new Worker("js/networkworkers.js"),
-      inUse: false,
-    };
-    workerList.push(newWorker);
-  }
+function angle(p) {
+  return Math.atan2(p.y, p.x);
 }
 
 function lerp(A, B, t) {
@@ -109,22 +102,32 @@ function copyObject(obj) {
 }
 
 window.workeractivated = false
+
+function Work(data) {
+  return new Promise((resolve, reject) => {
+    const worker = new Worker("js/networkworkers.js")
+
+    worker.onmessage = (e) => {
+      resolve(e)
+    }
+
+    worker.onerror = (e) => {
+      reject(e)
+    }
+    
+    worker.postMessage(data)
+  })
+}
+
 class NeuralNetworkPrediction {
-  static calculate(fn = console.log, inputs, brain) {
-    if (workerList.length > 0 && window.workeractivated) {
-      const worker = workerList.find((w) => !w.inUse) || workerList[0]
-      worker.inUse = true
-      worker.w.postMessage([inputs, brain])
-      worker.w.onmessage = (e) => {
-        const { outputs, network } = e.data
-        if (network.id === brain.id) {
-          fn(outputs, network)
-        }
-        worker.inUse = false
-      }
+  static calculate(cb, inputs, brain) {
+    if (window.workeractivated) {
+      Work([inputs, brain]).then((e) => {
+        cb(e.data.outputs, e.data.network)
+      })
     } else {
       const { outputs, network } = NeuralNetwork.feedForward(inputs, brain)
-      fn(outputs, network)
+      cb(outputs, network)
     }
   }
 }

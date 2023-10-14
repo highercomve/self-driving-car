@@ -12,9 +12,9 @@ export class Sensor {
     this.readings = []
   }
 
-  update = (road, traffic) => {
+  update = (roadBorders, traffic) => {
     this.#castRays()
-    this.#getReadings(road, traffic)
+    this.#getReadings(roadBorders, traffic)
   }
 
   draw = () => {
@@ -49,10 +49,10 @@ export class Sensor {
     }
   }
 
-  #getReadings(road, traffic) {
+  #getReadings(roadBorders, traffic) {
     this.readings = [];
     for (let i = 0; i < this.rays.length; i++) {
-      this.readings.push(this.#getReading(this.rays[i], road.borders, traffic));
+      this.readings.push(this.#getReading(this.rays[i], roadBorders, traffic));
     }
   }
 

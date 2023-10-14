@@ -1,7 +1,7 @@
-import { App } from './apps/easy_road.js'
+import { App } from './apps/world_editor.js'
 
 const searchParams = new URLSearchParams(location.search);
-window.APP_SIMULATIONS = Number(searchParams.get("simulations")) || 50
+window.APP_SIMULATIONS = Number(searchParams.get("simulations")) || 10
 window.APP_TRAFFIC = Number(searchParams.get("traffic")) || 50
 window.APP_SENSORS = Number(searchParams.get("sensors")) || 7
 window.APP_HIDDEN_LEVELS = searchParams.get("hidden_levels") || ''
@@ -10,6 +10,10 @@ window.APP_DIVERGENCE = Number(searchParams.get("divergence")) || 0.2
 
 window.save = () => {
   window.app.saveOnLocalStorage(true)
+}
+
+window.saveGraph = () => {
+  window.app.saveTrack()
 }
 
 window.restart = () => {
