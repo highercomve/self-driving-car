@@ -201,7 +201,7 @@ export class App {
       this.ctx.globalAlpha = 0.3;
       this.graphEditor.display(this.ctx);
 
-      if (this.world.roadBorders.length > 0) {
+      if (this.world.roadBorders.length > 0 && this.players.length > 0) {
          const bestPlayerIndex = this.players.reduce(bestReducer, { score: 0, index: 0 }, false)
          const liveCarsNumber = this.players.reduce(countLiveCars, 0)
          const bestPlayer = this.players[bestPlayerIndex.index] || this.players[0]
@@ -230,7 +230,7 @@ export class App {
          const now = new Date()
          const timeSinceInit = now.getTime() - this.startAt.getTime()
          if (timeSinceInit > minTime) {
-            if (this.players.length > 1 && this.autolearn && liveCarsNumber == 0) {
+            if (liveCarsNumber == 0) {
               return this.iterate()
             }
           }
