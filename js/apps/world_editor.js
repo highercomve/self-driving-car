@@ -41,6 +41,9 @@ export class App {
 
    static generateCars(N, ctx, road, controls, opts = { maxSpeed: 1.2, drawSensor: false }, brainJson) {
       const cars = [];
+      if (road.segments.length === 0) {
+         return cars
+      }
       for (let i = 0; i < N; i++) {
          let brain
          if (brainJson) {
@@ -98,7 +101,8 @@ export class App {
    }
 
    reset = () => {
-      localStorage.clear()
+      localStorage.removeItem("bestBrain")
+      localStorage.removeItem("brainScore")
       this.bestPlayer = null
       this.iteration = 0
       this.bestScore = 0
@@ -188,35 +192,40 @@ export class App {
    animate = () => {
       this.#setHeight()
 
-      const bestPlayerIndex = this.players.reduce(bestReducer, { y: 0, index: 0 }, false)
-      const liveCarsNumber = this.players.reduce(countLiveCars, 0)
-      const bestPlayer = this.players[bestPlayerIndex.index] || this.players[0]
-
-      this.info.update({
-         liveCars: liveCarsNumber,
-         bestScore: this.bestScore,
-         iteration: this.iteration,
-         currentScore: bestPlayer.score
-      })
       this.viewport.reset();
       this.world.generate();
       this.world.draw(this.ctx);
       this.ctx.globalAlpha = 0.3;
       this.graphEditor.display(this.ctx);
 
-      this.players.forEach((c) => c.update(this.world.roadBorders, this.traffic));
+      if (this.world.roadBorders.length > 0) {
+         const bestPlayerIndex = this.players.reduce(bestReducer, { y: 0, index: 0 }, false)
+         const liveCarsNumber = this.players.reduce(countLiveCars, 0)
+         const bestPlayer = this.players[bestPlayerIndex.index] || this.players[0]
 
-      this.ctx.globalAlpha = 0.1
-      this.players.forEach((p) => {
-        p.drawSensor = false
-        p.draw()
-      })
-  
-      this.ctx.globalAlpha = 1
-      bestPlayer.drawSensor = true
-      bestPlayer.draw()
-      this.info.draw()
-      Visualizer.drawNetwork(this.networkCtx, this.players[0].brain)
+         this.info.update({
+            liveCars: liveCarsNumber,
+            bestScore: this.bestScore,
+            iteration: this.iteration,
+            currentScore: bestPlayer.score
+         })
+
+         this.players.forEach((c) => c.update(this.world.roadBorders, this.traffic));
+
+         this.ctx.globalAlpha = 0.1
+         this.players.forEach((p) => {
+           p.drawSensor = false
+           p.draw()
+         })
+   
+         this.ctx.globalAlpha = 1
+         bestPlayer.drawSensor = true
+         bestPlayer.draw()
+         this.info.draw()
+
+         Visualizer.drawNetwork(this.networkCtx, this.players[0].brain)
+      }
+      
 
       requestAnimationFrame(this.animate)
    }

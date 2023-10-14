@@ -13,7 +13,8 @@ window.save = () => {
 }
 
 window.restart = () => {
-  localStorage.clear()
+  localStorage.removeItem("bestBrain")
+  localStorage.removeItem("brainScore")
   location.reload()
 }
 

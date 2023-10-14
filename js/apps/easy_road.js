@@ -97,7 +97,8 @@ export class App {
   }
 
   reset = () => {
-    localStorage.clear()
+    localStorage.removeItem("bestBrain")
+    localStorage.removeItem("brainScore")
     this.bestPlayer = null
     this.iteration = 0
     this.bestScore = 0
