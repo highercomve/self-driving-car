@@ -7,6 +7,9 @@ import { Car } from '../car/advanced.js';
 import { Visualizer } from "../visualizer.js"
 import { Info } from '../info.js'
 
+const minTime = 10000
+const maxTime = 600000
+
 const bestReducer = (best, c, i, withoutDamage = false) => {
    const better = (c.score < best.score) && (!c.damaged || withoutDamage)
    best.score = better ? c.score : best.score
@@ -199,7 +202,7 @@ export class App {
       this.graphEditor.display(this.ctx);
 
       if (this.world.roadBorders.length > 0) {
-         const bestPlayerIndex = this.players.reduce(bestReducer, { y: 0, index: 0 }, false)
+         const bestPlayerIndex = this.players.reduce(bestReducer, { score: 0, index: 0 }, false)
          const liveCarsNumber = this.players.reduce(countLiveCars, 0)
          const bestPlayer = this.players[bestPlayerIndex.index] || this.players[0]
 
@@ -224,6 +227,17 @@ export class App {
          this.info.draw()
 
          Visualizer.drawNetwork(this.networkCtx, this.players[0].brain)
+         const now = new Date()
+         const timeSinceInit = now.getTime() - this.startAt.getTime()
+         if (timeSinceInit > minTime) {
+            if (bestPlayer.y <= maxDistance || (this.players.length > 1 && this.autolearn && liveCarsNumber == 0)) {
+              return this.iterate()
+            }
+          }
+      
+          if (timeSinceInit > maxTime) {
+            return this.iterate()
+          }
       }
       
 
