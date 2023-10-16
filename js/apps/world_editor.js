@@ -43,7 +43,7 @@ export class App {
       this.bestScore = Number(localStorage.getItem("brainScore")) || 0
       this.iteration = Number(localStorage.getItem("iteration")) || 0
 
-      this.#addKeyboardListeners()
+      document.addEventListener("keyup", this.#onkeyup)
    }
 
    static generateCars(N, ctx, road, controls, opts = { maxSpeed: 1.2, drawSensor: true }, brainJson) {
@@ -116,15 +116,13 @@ export class App {
       return traffic
    }
 
-   #addKeyboardListeners = () => {
-      document.onkeyup = (event) => {
-         switch (event.key) {
-            case "s":
-               const bestPlayer = this.bestScoredPlayer()
-               bestPlayer.swiched = true
-            default:
-               return
-         }
+   #onkeyup = (event) => {
+      switch (event.key) {
+         case "s":
+            const bestPlayer = this.getBestPlayer()
+            bestPlayer.swiched = true
+         default:
+            return
       }
    }
 
@@ -263,16 +261,16 @@ export class App {
       this.world.draw(this.ctx);
       this.ctx.globalAlpha = 0.3;
       this.graphEditor.display(this.ctx);
-      
+
       this.ctx.globalAlpha = 1
       this.traffic.forEach((p) => p.draw())
-      
+
       this.ctx.globalAlpha = 0.1
       this.players.forEach((p) => p.draw(false))
-      
+
       this.ctx.globalAlpha = 1
       this.getBestPlayer().draw()
-      
+
       this.info.draw()
 
       if (this.showNetwork) {

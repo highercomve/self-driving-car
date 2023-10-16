@@ -1,5 +1,5 @@
 export function CreateControls(type) {
-  switch(type) {
+  switch (type) {
     case "AI":
       return new AIControls()
     case "KEYS":
@@ -17,7 +17,8 @@ export class AIControls {
     this.reverse = false
     this.manual = false
 
-    this.#addKeyboardListeners()
+    document.addEventListener("keydown", this.#onkeydown)
+    document.addEventListener("keyup", this.#onkeydown)
   }
 
   update = (outputs) => {
@@ -30,49 +31,48 @@ export class AIControls {
     this.reverse = outputs[3]
   }
 
-  #addKeyboardListeners() {
-    document.onkeydown = (event) => {
-      switch (event.key) {
-        case "m": 
-          this.manual = true
-          this.forward = true
-          break
-        case "ArrowRight":
-          this.right = true
-          break
-        case "ArrowLeft":
-          this.left = true
-          break
-        case "ArrowUp":
-          this.forward = true
-          break
-        case "ArrowDown":
-          this.reverse = true
-          break
-      }
+  #onkeydown = (event) => {
+    switch (event.key) {
+      case "m":
+        this.manual = true
+        this.forward = true
+        break
+      case "ArrowRight":
+        this.right = true
+        break
+      case "ArrowLeft":
+        this.left = true
+        break
+      case "ArrowUp":
+        this.forward = true
+        break
+      case "ArrowDown":
+        this.reverse = true
+        break
     }
-    document.onkeyup = (event) => {
-      switch (event.key) {
-        case "a":
-          this.manual = false
-          break
-        case "ArrowRight":
-          this.right = false
-          break
-        case "ArrowLeft":
-          this.left = false
-          break
-        case "ArrowUp":
-          this.forward = false
-          this.manual = false
-          break
-        case "ArrowDown":
-          this.reverse = false
-          break
-      }
+  }
+  #onkeyup = (event) => {
+    switch (event.key) {
+      case "a":
+        this.manual = false
+        break
+      case "ArrowRight":
+        this.right = false
+        break
+      case "ArrowLeft":
+        this.left = false
+        break
+      case "ArrowUp":
+        this.forward = false
+        this.manual = false
+        break
+      case "ArrowDown":
+        this.reverse = false
+        break
     }
   }
 }
+
 
 export class ForwardControls {
   constructor() {
@@ -81,7 +81,7 @@ export class ForwardControls {
     this.right = false
     this.reverse = false
   }
-  update = (_) => {}
+  update = (_) => { }
 }
 
 export class KeyboardControls {
@@ -94,7 +94,7 @@ export class KeyboardControls {
     this.#addKeyboardListeners();
   }
 
-  update = (_) => {}
+  update = (_) => { }
 
   #addKeyboardListeners() {
     document.onkeydown = (event) => {

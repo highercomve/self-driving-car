@@ -5,7 +5,7 @@ export class Sensor {
     this.car = car
     this.rayCount = rayCount === 0 ? window.APP_SENSORS : rayCount
     this.rayLength = 200
-    this.raySpread = Math.PI / 1.8
+    this.raySpread = Math.PI / 1.2
 
     this.ctx = ctx
     this.rays = []
