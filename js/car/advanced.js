@@ -109,9 +109,9 @@ export class Car {
     this.brain = brain
   }
 
-  draw = () => {
+  draw = (withSensor = true) => {
     const ctx = this.ctx
-    if (this.sensor && this.drawSensor) {
+    if (this.sensor && this.drawSensor && withSensor) {
       this.sensor.draw(ctx);
     }
 

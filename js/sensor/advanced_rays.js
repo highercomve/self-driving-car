@@ -17,38 +17,6 @@ export class Sensor {
     this.#getReadings(roadBorders, traffic)
   }
 
-  draw = () => {
-    const ctx = this.ctx
-    for (let i = 0; i < this.rayCount; i++) {
-      const end = this.readings[i] ? this.readings[i] : this.rays[i][1]
-      ctx.beginPath();
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = "yellow";
-      ctx.moveTo(
-        this.rays[i][0].x,
-        this.rays[i][0].y
-      );
-      ctx.lineTo(
-        end.x,
-        end.y
-      );
-      ctx.stroke();
-
-      ctx.beginPath();
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = "black";
-      ctx.moveTo(
-        this.rays[i][1].x,
-        this.rays[i][1].y
-      );
-      ctx.lineTo(
-        end.x,
-        end.y
-      );
-      ctx.stroke();
-    }
-  }
-
   #getReadings(roadBorders, traffic) {
     this.readings = [];
     for (let i = 0; i < this.rays.length; i++) {
@@ -108,6 +76,33 @@ export class Sensor {
         y: this.car.y - Math.cos(rayAngle) * this.rayLength
       }
       this.rays.push([start, end])
+    }
+  }
+
+  draw = () => {
+    const ctx = this.ctx
+    for (let i = 0; i < this.rayCount; i++) {
+      if (this.readings[i]) {
+        this.ctx.globalAlpha = 0.4
+        
+        ctx.beginPath();
+        ctx.setLineDash([5, 5]);
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = this.car.color;
+
+        ctx.moveTo(this.rays[i][0].x, this.rays[i][0].y);
+        ctx.lineTo(this.readings[i].x, this.readings[i].y);
+        ctx.stroke();
+
+        ctx.setLineDash([])
+        ctx.beginPath();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = this.car.color;
+        ctx.arc(this.readings[i].x, this.readings[i].y, 4, 0, 2 * Math.PI);
+        ctx.stroke();
+
+        this.ctx.globalAlpha = 1
+      }
     }
   }
 }

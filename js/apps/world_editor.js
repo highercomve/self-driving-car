@@ -35,7 +35,7 @@ export class App {
    pause = false
    animationSpeed = 1
 
-   constructor(carCanvas, networkCanvas, showNetwork = true) {
+   constructor(carCanvas, networkCanvas, showNetwork) {
       this.carCanvas = carCanvas
       this.networkCanvas = networkCanvas
       this.showNetwork = showNetwork
@@ -46,7 +46,7 @@ export class App {
       this.#addKeyboardListeners()
    }
 
-   static generateCars(N, ctx, road, controls, opts = { maxSpeed: 1.2, drawSensor: false }, brainJson) {
+   static generateCars(N, ctx, road, controls, opts = { maxSpeed: 1.2, drawSensor: true }, brainJson) {
       const cars = [];
       if (road.segments.length === 0) {
          return cars
@@ -77,16 +77,15 @@ export class App {
       return cars;
    }
 
-   static generateTraffic(ctx, road, howMany, brain) {
+   static generateTraffic(ctx, road, howMany) {
       if (howMany === 0) {
          return []
       }
-      howMany = Math.max(howMany, 3)
-      let hasSensor = false
-      let controls = CreateControls("AI")
-      if (brain) {
+      howMany = Math.min(howMany, 3)
+      const hasBrain = localStorage.getItem("bestBrain") ? true : false
+      let controls = CreateControls()
+      if (hasBrain) {
          controls = CreateControls("AI")
-         hasSensor = true
       }
       const traffic = []
       for (let i = 0; i < howMany; i++) {
@@ -94,19 +93,31 @@ export class App {
          const x = road.segments[0].p1.x + 100
          const y = road.segments[0].p1.y - 30 + (30 * odd)
          const opts = {
-            maxSpeed: randomFloorFromInterval(0.8, 1),
-            hasSensor: hasSensor,
-            hasBrain: brain ? true : false
+            maxSpeed: 1.2,
+            hasSensor: hasBrain,
+            hasBrain: hasBrain,
+            drawSensor: true,
          }
 
-         traffic.push(new Car(ctx, x, y, 20, 38, controls, opts, getRandomColor(), brain, i))
+         traffic.push(new Car(
+            ctx,
+            x,
+            y,
+            20,
+            38,
+            controls,
+            opts,
+            getRandomColor(),
+            localStorage.getItem("bestBrain") ? JSON.parse(localStorage.getItem("bestBrain")) : undefined,
+            i
+         ))
       }
 
       return traffic
    }
 
    #addKeyboardListeners = () => {
-      document.onkeydown = (event) => {
+      document.onkeyup = (event) => {
          switch (event.key) {
             case "s":
                const bestPlayer = this.bestScoredPlayer()
@@ -136,6 +147,7 @@ export class App {
    iterate = () => {
       this.saveOnLocalStorage()
       location.reload()
+      // this.init(this.simulations, this.trafficNumber, this.animationSpeed)
    }
 
    saveTrack = () => {
@@ -183,6 +195,8 @@ export class App {
 
    init = (simulations = 1, trafficNumber = 0, animationSpeed = 1) => {
       this.animationSpeed = animationSpeed
+      this.simulations = simulations
+      this.trafficNumber = trafficNumber
       this.startAt = new Date()
       this.iteration = this.iteration + 1
       this.carCanvas.width = this.carCanvas.parentElement.offsetWidth
@@ -206,8 +220,7 @@ export class App {
       this.traffic = App.generateTraffic(
          this.ctx,
          this.graph,
-         trafficNumber,
-         localStorage.getItem("bestBrain") ? JSON.parse(localStorage.getItem("bestBrain")) : undefined
+         trafficNumber
       )
       this.world = new World(this.graph);
       this.viewport = new Viewport(this.carCanvas);
@@ -231,10 +244,9 @@ export class App {
       if (this.world.roadBorders.length === 0 && this.players.length === 0) { return }
       if (this.pause) { return }
 
-      const bestPlayer = this.getBestPlayer()
       this.players.forEach((c) => c.update(this.world.roadBorders, this.traffic));
       this.traffic.forEach((c) => c.update(this.world.roadBorders, []))
-
+      const bestPlayer = this.getBestPlayer()
 
       this.info.update({
          liveCars: this.players.reduce(countLiveCars, 0),
@@ -247,29 +259,25 @@ export class App {
 
    draw = () => {
       if (this.world.roadBorders.length === 0 && this.players.length === 0) { return }
+
       this.world.draw(this.ctx);
       this.ctx.globalAlpha = 0.3;
       this.graphEditor.display(this.ctx);
+      
       this.ctx.globalAlpha = 1
-      this.traffic.forEach((p) => {
-         p.drawSensor = false
-         p.draw()
-      })
-
+      this.traffic.forEach((p) => p.draw())
+      
       this.ctx.globalAlpha = 0.1
-      this.players.forEach((p) => {
-         p.drawSensor = false
-         p.draw()
-      })
+      this.players.forEach((p) => p.draw(false))
+      
       this.ctx.globalAlpha = 1
-
-      const bestPlayer = this.getBestPlayer()
-      bestPlayer.drawSensor = true
-      bestPlayer.draw()
+      this.getBestPlayer().draw()
+      
       this.info.draw()
 
-      Visualizer.drawNetwork(this.networkCtx, this.players[0].brain)
-
+      if (this.showNetwork) {
+         Visualizer.drawNetwork(this.networkCtx, this.players[0].brain)
+      }
    }
 
    animate = () => {

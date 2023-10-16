@@ -5,7 +5,7 @@ window.APP_SIMULATIONS = Number(searchParams.get("simulations")) || 10
 window.APP_TRAFFIC = Number(searchParams.get("traffic")) || 0
 window.APP_SENSORS = Number(searchParams.get("sensors")) || 7
 window.APP_HIDDEN_LEVELS = searchParams.get("hidden_levels") || ''
-window.APP_SHOW_NETWORK = !searchParams.get("show_network")
+window.APP_SHOW_NETWORK = searchParams.get("hide_network") !== 'false'
 window.APP_DIVERGENCE = Number(searchParams.get("divergence")) || 0.2
 
 
@@ -125,7 +125,6 @@ document.addEventListener("DOMContentLoaded", () => {
   window.app = new App(
     document.getElementById("world"),
     document.getElementById("network"),
-    true,
     window.APP_SHOW_NETWORK 
   )
   window.app.init(window.APP_SIMULATIONS, window.APP_TRAFFIC, animationSpeed)
