@@ -13,7 +13,7 @@ export class World {
      this.generate();
   }
 
-  generate() {
+  generate = () => {
      this.envelopes.length = 0;
      for (const seg of this.graph.segments) {
         this.envelopes.push(
@@ -24,7 +24,7 @@ export class World {
      this.roadBorders = Polygon.union(this.envelopes.map((e) => e.poly));
   }
 
-  draw(ctx) {
+  draw = (ctx) => {
      for (const env of this.envelopes) {
         env.draw(ctx, { fill: "#BBB", stroke: "#BBB", lineWidth: 15 });
      }

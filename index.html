@@ -11,8 +11,8 @@
 
 <body>
   <section id="content">
-    <section id="world-container">
-      <canvas id="world"></canvas>
+    <section id="world-container" style="background-color: rgb(152, 197, 152);">
+      <canvas id="world" style="background-color: rgb(152, 197, 152);"></canvas>
     </section>
     <section id="network-visualizer">
       <canvas id="network"></canvas>
@@ -35,10 +35,12 @@
         <span class="value" id="current-score"></span>
       </div>
       <div id="verticalButtons">
-        <button onclick="save()">Save</button>
+        <button onclick="save()">Save Car</button>
+        <button onclick="saveGraph()">Save Track</button>
         <button onclick="restart()">Restart</button>
         <button onclick="iterate()">Iterate</button>
         <button onclick="exportModel()">Export model</button>
+        <button onclick="exportTrack()">Export track</button>
         <button onclick="importModel()">Import model</button>
 
         <form id="import-model-form" onsubmit="submitFiles()">
@@ -53,12 +55,24 @@
   
   <script type="module" src="js/visualizer.js"></script>
   <script type="module" src="js/info.js"></script>
-  <script type="module" src="js/sensor/basic_rays.js"></script>
+  <script type="module" src="js/sensor/advanced_rays.js"></script>
   <script type="module" src="js/road.js"></script>
   <script type="module" src="js/controls.js"></script>
-  <script type="module" src="js/car/basic.js"></script>
-  <script type="module" src="js/apps/easy_road.js"></script>
-  <script type="module" src="js/index.js"></script>
+  <script type="module" src="js/car/advanced.js"></script>
+  
+  <script type="module" src="js/views/graph_editor.js"></script>
+  <script type="module" src="js/views/viewport.js"></script>
+  <script type="module" src="js/views/world_editor.js"></script>
+
+  <script type="module" src="js/lib/graph.js"></script>
+  <script type="module" src="js/lib/envelope.js"></script>
+  <script type="module" src="js/lib/point.js"></script>
+  <script type="module" src="js/lib/polygon.js"></script>
+  <script type="module" src="js/lib/segment.js"></script>
+  
+  <script type="module" src="js/apps/world_editor.js"></script>
+  
+  <script type="module" src="js/workd_editor.js"></script>
 </body>
 
 </html>

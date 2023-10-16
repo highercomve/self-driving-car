@@ -17,14 +17,14 @@ export class GraphEditor {
       this.#addEventListeners();
    }
 
-   #addEventListeners() {
-      this.canvas.addEventListener("mousedown", this.#handleMouseDown.bind(this));
-      this.canvas.addEventListener("mousemove", this.#handleMouseMove.bind(this));
+   #addEventListeners = () => {
+      this.canvas.addEventListener("mousedown", this.#handleMouseDown);
+      this.canvas.addEventListener("mousemove", this.#handleMouseMove);
       this.canvas.addEventListener("contextmenu", (evt) => evt.preventDefault());
       this.canvas.addEventListener("mouseup", () => this.dragging = false);
    }
 
-   #handleMouseMove(evt) {
+   #handleMouseMove = (evt) => {
       this.mouse = this.viewport.getMouse(evt, true);
       this.hovered = getNearestPoint(this.mouse, this.graph.points, 10 * this.viewport.zoom);
       if (this.dragging == true) {
@@ -33,7 +33,7 @@ export class GraphEditor {
       }
    }
 
-   #handleMouseDown(evt) {
+   #handleMouseDown = (evt) => {
       if (evt.button == 2) { // right click
          if (this.selected) {
             this.selected = null;
@@ -53,14 +53,14 @@ export class GraphEditor {
       }
    }
 
-   #select(point) {
+   #select = (point) => {
       if (this.selected) {
          this.graph.tryAddSegment(new Segment(this.selected, point));
       }
       this.selected = point;
    }
 
-   #removePoint(point) {
+   #removePoint = (point) => {
       this.graph.removePoint(point);
       this.hovered = null;
       if (this.selected == point) {
@@ -68,13 +68,13 @@ export class GraphEditor {
       }
    }
 
-   dispose() {
+   dispose = () => {
       this.graph.dispose();
       this.selected = null;
       this.hovered = null;
    }
 
-   display(ctx) {
+   display = (ctx) =>{
       this.graph.draw(this.ctx);
       if (this.hovered) {
          this.hovered.draw(this.ctx, { fill: true });

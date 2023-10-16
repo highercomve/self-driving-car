@@ -17,8 +17,7 @@ window.saveGraph = () => {
 }
 
 window.restart = () => {
-  localStorage.removeItem("bestBrain")
-  localStorage.removeItem("brainScore")
+  localStorage.clear()
   location.reload()
 }
 
@@ -42,9 +41,19 @@ window.exportModel = () => {
   a.click()
 }
 
-window.importModel = () => {
-  const input = document.getElementById("import-model")
-  input.click()
+window.exportTrack = () => {
+  const track = JSON.parse(localStorage.getItem("track"))
+  const blob = new Blob([JSON.stringify({ track }, null, 2)], {
+    type: "application/json",
+  });
+  const file = window.URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  const now = new Date()
+  a.href = file
+  a.download = `track-${now.toISOString()}.json`
+  a.target = '_black'
+  a.referrerPolicy = 'noopener,noreferrer'
+  a.click()
 }
 
 window.changeFiles = (_) => {
@@ -65,8 +74,9 @@ window.changeFiles = (_) => {
 
 function processFile(_, reader) {
   const data = JSON.parse(reader)
-  localStorage.removeItem("bestBrain")
-  localStorage.removeItem("brainScore")
+  if (data.track) {
+    localStorage.setItem("bestBrain", JSON.stringify(data.track));
+  }
   if (data && data.brain && data.fitnessScore) {
     localStorage.setItem("bestBrain", JSON.stringify(data.brain));
     localStorage.setItem("brainScore", data.fitnessScore);

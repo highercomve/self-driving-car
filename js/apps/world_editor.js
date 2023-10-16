@@ -1,4 +1,5 @@
 import { Graph } from "../lib/graph.js";
+import { Point } from '../lib/point.js'
 import { World } from "../views/world_editor.js";
 import { Viewport } from "../views/viewport.js";
 import { GraphEditor } from "../views/graph_editor.js";
@@ -60,7 +61,7 @@ export class App {
          cars.push(new Car(
             ctx,
             road.segments[0].p1.x + 100,
-            road.segments[0].p1.y - 20,
+            road.segments[0].p1.y,
             25,
             42,
             controls,
@@ -224,6 +225,8 @@ export class App {
          bestPlayer.drawSensor = true
          bestPlayer.draw()
          this.info.draw()
+
+         this.viewport.move(bestPlayer.x, bestPlayer.y)
 
          Visualizer.drawNetwork(this.networkCtx, this.players[0].brain)
          const now = new Date()
