@@ -25,6 +25,10 @@ window.iterate = () => {
   window.app.iterate()
 }
 
+window.pause = () => {
+  window.app.togglePause()
+}
+
 window.exportModel = () => {
   const brain = JSON.parse(localStorage.getItem("bestBrain"))
   const score = JSON.parse(localStorage.getItem("brainScore"))

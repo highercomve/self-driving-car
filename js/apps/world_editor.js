@@ -33,6 +33,7 @@ export class App {
    bestFitness = 0
    iteration = 0
    startAt = 0
+   pause = false
 
    constructor(carCanvas, networkCanvas, showNetwork = true) {
       this.carCanvas = carCanvas
@@ -102,6 +103,10 @@ export class App {
       }
 
       return traffic
+   }
+
+   togglePause = () => {
+      this.pause = !this.pause
    }
 
    reset = () => {
@@ -203,7 +208,10 @@ export class App {
       this.graphEditor.display(this.ctx);
 
       if (this.world.roadBorders.length > 0 && this.players.length > 0) {
-         this.players.forEach((c) => c.update(this.world.roadBorders, this.traffic));
+         if (!this.pause) {
+            this.players.forEach((c) => c.update(this.world.roadBorders, this.traffic));
+         }
+
          const bestPlayerIndex = this.players.reduce(bestReducer, { score: 0, index: 0 }, false)
          const liveCarsNumber = this.players.reduce(countLiveCars, 0)
          const bestPlayer = this.players[bestPlayerIndex.index] || this.players[0]
@@ -226,7 +234,9 @@ export class App {
          bestPlayer.draw()
          this.info.draw()
 
-         this.viewport.move(bestPlayer.x, bestPlayer.y)
+         if (!this.pause) {
+            this.viewport.move(bestPlayer.x, bestPlayer.y)
+         }
 
          Visualizer.drawNetwork(this.networkCtx, this.players[0].brain)
          const now = new Date()
