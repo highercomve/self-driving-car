@@ -56,6 +56,11 @@ window.exportTrack = () => {
   a.click()
 }
 
+window.importModel = () => {
+  const input = document.getElementById("import-model")
+  input.click()
+}
+
 window.changeFiles = (_) => {
   const input = document.getElementById("import-model")
   for (const fileIndex in input.files) {
@@ -74,10 +79,10 @@ window.changeFiles = (_) => {
 
 function processFile(_, reader) {
   const data = JSON.parse(reader)
+  console.log(data)
   if (data.track) {
-    localStorage.setItem("bestBrain", JSON.stringify(data.track));
-  }
-  if (data && data.brain && data.fitnessScore) {
+    localStorage.setItem("track", JSON.stringify(data.track));
+  } else if (data && data.brain && data.fitnessScore) {
     localStorage.setItem("bestBrain", JSON.stringify(data.brain));
     localStorage.setItem("brainScore", data.fitnessScore);
   } else if (data && data.brain && data.score) {
