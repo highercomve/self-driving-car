@@ -2,7 +2,7 @@ import { App } from './apps/world_editor.js'
 
 const searchParams = new URLSearchParams(location.search);
 window.APP_SIMULATIONS = Number(searchParams.get("simulations")) || 10
-window.APP_TRAFFIC = Number(searchParams.get("traffic")) || 50
+window.APP_TRAFFIC = Number(searchParams.get("traffic")) || 0
 window.APP_SENSORS = Number(searchParams.get("sensors")) || 7
 window.APP_HIDDEN_LEVELS = searchParams.get("hidden_levels") || ''
 window.APP_SHOW_NETWORK = !searchParams.get("show_network")

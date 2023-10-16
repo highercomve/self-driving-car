@@ -12,7 +12,7 @@ const minTime = 10000
 const maxTime = 600000
 
 const bestReducer = (best, c, i, withoutDamage = false) => {
-   const better = (c.score > best.score) && (!c.damaged || withoutDamage)
+   const better = (c.score > best.score) && (!c.swiched || !c.damaged || withoutDamage)
    best.score = better ? c.score : best.score
    best.index = better ? i : best.index
    return best
@@ -42,6 +42,8 @@ export class App {
       this.maxDistance = 0
       this.bestScore = Number(localStorage.getItem("brainScore")) || 0
       this.iteration = Number(localStorage.getItem("iteration")) || 0
+
+      this.#addKeyboardListeners()
    }
 
    static generateCars(N, ctx, road, controls, opts = { maxSpeed: 1.2, drawSensor: false }, brainJson) {
@@ -61,10 +63,10 @@ export class App {
 
          cars.push(new Car(
             ctx,
-            road.segments[0].p1.x + 100,
-            road.segments[0].p1.y,
-            25,
-            42,
+            road.segments[0].p1.x + 10,
+            road.segments[0].p1.y + 30,
+            22,
+            35,
             controls,
             opts,
             "blue",
@@ -75,34 +77,44 @@ export class App {
       return cars;
    }
 
-   static generateTraffic(ctx, road, howMany = 1) {
+   static generateTraffic(ctx, road, howMany, brain) {
       if (howMany === 0) {
          return []
       }
-      let controls = CreateControls()
+      howMany = Math.max(howMany, 3)
+      let hasSensor = false
+      let controls = CreateControls("AI")
+      if (brain) {
+         controls = CreateControls("AI")
+         hasSensor = true
+      }
       const traffic = []
-      let previousLane = -1
       for (let i = 0; i < howMany; i++) {
-         let lane = randomIntFromInterval(0, road.laneCount)
-         if (lane === previousLane) {
-            lane = (lane + 1) % road.laneCount
-         }
-         previousLane = lane
-         const x = road.getLaneCenter(lane)
-         const y = randomIntFromInterval(
-            0 - 200,
-            road.borders[0][0].y + 2 * window.innerHeight
-         )
+         const odd = i % 3
+         const x = road.segments[0].p1.x + 100
+         const y = road.segments[0].p1.y - 30 + (30 * odd)
          const opts = {
-            maxSpeed: randomFloorFromInterval(1, 1.2),
-            hasSensor: false,
-            hasBrain: false
+            maxSpeed: randomFloorFromInterval(0.8, 1),
+            hasSensor: hasSensor,
+            hasBrain: brain ? true : false
          }
 
-         traffic.push(new Car(ctx, x, y, 30, 50, controls, opts, getRandomColor()))
+         traffic.push(new Car(ctx, x, y, 20, 38, controls, opts, getRandomColor(), brain, i))
       }
 
       return traffic
+   }
+
+   #addKeyboardListeners = () => {
+      document.onkeydown = (event) => {
+         switch (event.key) {
+            case "s":
+               const bestPlayer = this.bestScoredPlayer()
+               bestPlayer.swiched = true
+            default: 
+               return
+         }
+      }
    }
 
    togglePause = () => {
@@ -164,7 +176,7 @@ export class App {
       }
    }
 
-   init = (simulations = 1, trafficNumber = 20) => {
+   init = (simulations = 1, trafficNumber = 0) => {
       this.startAt = new Date()
       this.iteration = this.iteration + 1
       this.carCanvas.width = this.carCanvas.parentElement.offsetWidth
@@ -185,7 +197,12 @@ export class App {
          undefined,
          localStorage.getItem("bestBrain") ? JSON.parse(localStorage.getItem("bestBrain")) : undefined
       )
-      this.traffic = []
+      this.traffic = App.generateTraffic(
+         this.ctx,
+         this.graph,
+         trafficNumber,
+         localStorage.getItem("bestBrain") ? JSON.parse(localStorage.getItem("bestBrain")) : undefined
+      )
       this.world = new World(this.graph);
       this.viewport = new Viewport(this.carCanvas);
       this.graphEditor = new GraphEditor(this.viewport, this.graph);
@@ -210,6 +227,7 @@ export class App {
       if (this.world.roadBorders.length > 0 && this.players.length > 0) {
          if (!this.pause) {
             this.players.forEach((c) => c.update(this.world.roadBorders, this.traffic));
+            this.traffic.forEach((c) => c.update(this.world.roadBorders, []));
          }
 
          const bestPlayerIndex = this.players.reduce(bestReducer, { score: 0, index: 0 }, false)
@@ -223,12 +241,17 @@ export class App {
             currentScore: bestPlayer.score
          })
 
+         this.ctx.globalAlpha = 1
+         this.traffic.forEach((p) => {
+            p.drawSensor = false
+            p.draw()
+          })
+   
          this.ctx.globalAlpha = 0.1
          this.players.forEach((p) => {
            p.drawSensor = false
            p.draw()
          })
-   
          this.ctx.globalAlpha = 1
          bestPlayer.drawSensor = true
          bestPlayer.draw()

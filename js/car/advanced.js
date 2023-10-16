@@ -24,6 +24,7 @@ export class Car {
   fitness = 0
   score = 0
   id = 0
+  swiched = false
 
   constructor(ctx, x, y, width = 30, height = 50, controls, opts = {}, color = "white", brain, id = 0) {
     this.x = x
