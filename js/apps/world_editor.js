@@ -1,5 +1,4 @@
 import { Graph } from "../lib/graph.js";
-import { Point } from '../lib/point.js'
 import { World } from "../views/world_editor.js";
 import { Viewport } from "../views/viewport.js";
 import { GraphEditor } from "../views/graph_editor.js";
@@ -34,6 +33,7 @@ export class App {
    iteration = 0
    startAt = 0
    pause = false
+   animationSpeed = 1
 
    constructor(carCanvas, networkCanvas, showNetwork = true) {
       this.carCanvas = carCanvas
@@ -111,10 +111,14 @@ export class App {
             case "s":
                const bestPlayer = this.bestScoredPlayer()
                bestPlayer.swiched = true
-            default: 
+            default:
                return
          }
       }
+   }
+
+   setAnimationSpeed = (number) => {
+      this.animationSpeed = Math.min(number, 100)
    }
 
    togglePause = () => {
@@ -164,7 +168,6 @@ export class App {
       const bestPlayer = this.bestScoredPlayer()
       const currentScore = bestPlayer.getScore(this.traffic)
       const bestScore = Number(localStorage.getItem("brainScore")) || 0
-      // const bestFitness = Number(localStorage.getItem("brainFitness")) || 0
 
       localStorage.setItem("iteration", this.iteration);
       if (force || currentScore >= bestScore) {
@@ -174,9 +177,12 @@ export class App {
          localStorage.setItem("brainScore", this.bestScore);
          localStorage.setItem("brainFitness", this.bestFitness);
       }
+
+      localStorage.setItem("animationSpeed", this.animationSpeed)
    }
 
-   init = (simulations = 1, trafficNumber = 0) => {
+   init = (simulations = 1, trafficNumber = 0, animationSpeed = 1) => {
+      this.animationSpeed = animationSpeed
       this.startAt = new Date()
       this.iteration = this.iteration + 1
       this.carCanvas.width = this.carCanvas.parentElement.offsetWidth
@@ -215,66 +221,79 @@ export class App {
       this.networkCanvas.height = window.innerHeight
    }
 
+   getBestPlayer = () => {
+      const bestPlayerIndex = this.players.reduce(bestReducer, { score: 0, index: 0 }, false)
+
+      return this.players[bestPlayerIndex.index] || this.players[0]
+   }
+
+   update = () => {
+      if (this.world.roadBorders.length === 0 && this.players.length === 0) { return }
+      if (this.pause) { return }
+
+      const bestPlayer = this.getBestPlayer()
+      this.players.forEach((c) => c.update(this.world.roadBorders, this.traffic));
+      this.traffic.forEach((c) => c.update(this.world.roadBorders, []))
+
+
+      this.info.update({
+         liveCars: this.players.reduce(countLiveCars, 0),
+         bestScore: this.bestScore,
+         iteration: this.iteration,
+         currentScore: bestPlayer.score
+      })
+      this.viewport.move(bestPlayer.x, bestPlayer.y)
+   }
+
+   draw = () => {
+      if (this.world.roadBorders.length === 0 && this.players.length === 0) { return }
+      this.world.draw(this.ctx);
+      this.ctx.globalAlpha = 0.3;
+      this.graphEditor.display(this.ctx);
+      this.ctx.globalAlpha = 1
+      this.traffic.forEach((p) => {
+         p.drawSensor = false
+         p.draw()
+      })
+
+      this.ctx.globalAlpha = 0.1
+      this.players.forEach((p) => {
+         p.drawSensor = false
+         p.draw()
+      })
+      this.ctx.globalAlpha = 1
+
+      const bestPlayer = this.getBestPlayer()
+      bestPlayer.drawSensor = true
+      bestPlayer.draw()
+      this.info.draw()
+
+      Visualizer.drawNetwork(this.networkCtx, this.players[0].brain)
+
+   }
+
    animate = () => {
       this.#setHeight()
 
       this.viewport.reset();
       this.world.generate();
-      this.world.draw(this.ctx);
-      this.ctx.globalAlpha = 0.3;
-      this.graphEditor.display(this.ctx);
 
-      if (this.world.roadBorders.length > 0 && this.players.length > 0) {
-         if (!this.pause) {
-            this.players.forEach((c) => c.update(this.world.roadBorders, this.traffic));
-            this.traffic.forEach((c) => c.update(this.world.roadBorders, []));
-         }
-
-         const bestPlayerIndex = this.players.reduce(bestReducer, { score: 0, index: 0 }, false)
-         const liveCarsNumber = this.players.reduce(countLiveCars, 0)
-         const bestPlayer = this.players[bestPlayerIndex.index] || this.players[0]
-
-         this.info.update({
-            liveCars: liveCarsNumber,
-            bestScore: this.bestScore,
-            iteration: this.iteration,
-            currentScore: bestPlayer.score
-         })
-
-         this.ctx.globalAlpha = 1
-         this.traffic.forEach((p) => {
-            p.drawSensor = false
-            p.draw()
-          })
-   
-         this.ctx.globalAlpha = 0.1
-         this.players.forEach((p) => {
-           p.drawSensor = false
-           p.draw()
-         })
-         this.ctx.globalAlpha = 1
-         bestPlayer.drawSensor = true
-         bestPlayer.draw()
-         this.info.draw()
-
-         if (!this.pause) {
-            this.viewport.move(bestPlayer.x, bestPlayer.y)
-         }
-
-         Visualizer.drawNetwork(this.networkCtx, this.players[0].brain)
-         const now = new Date()
-         const timeSinceInit = now.getTime() - this.startAt.getTime()
-         if (timeSinceInit > minTime) {
-            if (liveCarsNumber == 0) {
-              return this.iterate()
-            }
-          }
-      
-          if (timeSinceInit > maxTime) {
-            return this.iterate()
-          }
+      for (let i = 0; i < this.animationSpeed; i++) {
+         this.update()
       }
-      
+      this.draw()
+
+      const now = new Date()
+      const timeSinceInit = now.getTime() - this.startAt.getTime()
+      if (timeSinceInit > minTime || this.animationSpeed > 1) {
+         if (this.players.reduce(countLiveCars, 0) === 0) {
+            return this.iterate()
+         }
+      }
+
+      if (timeSinceInit > maxTime) {
+         return this.iterate()
+      }
 
       requestAnimationFrame(this.animate)
    }

@@ -8,6 +8,7 @@ window.APP_HIDDEN_LEVELS = searchParams.get("hidden_levels") || ''
 window.APP_SHOW_NETWORK = !searchParams.get("show_network")
 window.APP_DIVERGENCE = Number(searchParams.get("divergence")) || 0.2
 
+
 window.save = () => {
   window.app.saveOnLocalStorage(true)
 }
@@ -99,9 +100,27 @@ function processFile(_, reader) {
   location.reload()
 }
 
+function changeAnimationSpeed(evnt) {
+  window.app.setAnimationSpeed(evnt.currentTarget.value)
+}
+
+function showAnimationSpeed(evnt) {
+  const label = evnt.target.nextElementSibling
+  label.innerText = `${evnt.currentTarget.value}x`
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const input = document.getElementById("import-model")
+  const slider = document.getElementById("animationSpeed")
+  const sliderLabel = document.getElementById("animationSpeedLabel")
   input.addEventListener("change", changeFiles)
+
+  slider.addEventListener("change", changeAnimationSpeed)
+  slider.addEventListener("input", showAnimationSpeed)
+
+  const animationSpeed = localStorage.getItem("animationSpeed") ? localStorage.getItem("animationSpeed") : 1
+  slider.value = animationSpeed
+  sliderLabel.innerText = `${animationSpeed}x`
 
   window.app = new App(
     document.getElementById("world"),
@@ -109,5 +128,5 @@ document.addEventListener("DOMContentLoaded", () => {
     true,
     window.APP_SHOW_NETWORK 
   )
-  window.app.init(window.APP_SIMULATIONS, window.APP_TRAFFIC)
+  window.app.init(window.APP_SIMULATIONS, window.APP_TRAFFIC, animationSpeed)
 })

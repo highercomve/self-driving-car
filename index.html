@@ -35,7 +35,15 @@
         <span class="value" id="current-score"></span>
       </div>
       <div id="verticalButtons">
-        <button onclick="pause()">Pause / Start</button>
+        <div style="width:100%; margin-bottom: 1em;">
+          <div>Animation speed</div>
+          <div class="slider-container">
+            <input type="range" min="0" max="50" value="1" step="1" class="slider" id="animationSpeed">
+            <label id="animationSpeedLabel" for="animationSpeed">1</label>
+          </div>
+        </div>
+
+        <!-- <button onclick="pause()">Pause / Start</button> -->
         <button onclick="save()">Save Car</button>
         <button onclick="saveGraph()">Save Track</button>
         <button onclick="restart()">Restart</button>
