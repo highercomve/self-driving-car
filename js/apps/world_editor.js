@@ -8,10 +8,15 @@ import { Visualizer } from "../visualizer.js"
 import { Info } from '../info.js'
 
 const minTime = 10000
-const maxTime = 600000
+const maxTime = 60000
+const carOptions = {
+   width: 22,
+   height: 38,
+   maxSpeed: 1.5
+ }
 
-const bestReducer = (best, c, i, withoutDamage = false) => {
-   const better = (c.score > best.score) && (!c.swiched || !c.damaged || withoutDamage)
+const bestReducer = (best, c, i) => {
+   const better = (c.score > best.score) && !c.damaged && !c.swiched 
    best.score = better ? c.score : best.score
    best.index = better ? i : best.index
    return best
@@ -46,7 +51,7 @@ export class App {
       document.addEventListener("keyup", this.#onkeyup)
    }
 
-   static generateCars(N, ctx, road, controls, opts = { maxSpeed: 1.2, drawSensor: true }, brainJson) {
+   static generateCars(N, ctx, road, controls, opts = { maxSpeed: carOptions.maxSpeed, drawSensor: true }, brainJson) {
       const cars = [];
       if (road.segments.length === 0) {
          return cars
@@ -63,10 +68,10 @@ export class App {
 
          cars.push(new Car(
             ctx,
-            road.segments[0].p1.x + 10,
-            road.segments[0].p1.y + 30,
-            22,
-            35,
+            road.segments[0].p1.x - 50,
+            road.segments[0].p1.y,
+            carOptions.width,
+            carOptions.height,
             controls,
             opts,
             "blue",
@@ -89,11 +94,11 @@ export class App {
       }
       const traffic = []
       for (let i = 0; i < howMany; i++) {
-         const odd = i % 3
-         const x = road.segments[0].p1.x + 100
-         const y = road.segments[0].p1.y - 30 + (30 * odd)
+         const odd = i % 2
+         const x = road.segments[0].p1.x + 60 + (60 * odd)
+         const y = road.segments[0].p1.y - 20 + (40 * odd)
          const opts = {
-            maxSpeed: 1.2,
+            maxSpeed: carOptions.maxSpeed,
             hasSensor: hasBrain,
             hasBrain: hasBrain,
             drawSensor: true,
@@ -103,8 +108,8 @@ export class App {
             ctx,
             x,
             y,
-            20,
-            38,
+            carOptions.width,
+            carOptions.height,
             controls,
             opts,
             getRandomColor(),
@@ -117,17 +122,45 @@ export class App {
    }
 
    #onkeyup = (event) => {
+      let bestPlayer
       switch (event.key) {
+         case "]":
+            this.setAnimationSpeed(this.animationSpeed + 1)
+            return
+         case "[":
+            this.setAnimationSpeed(this.animationSpeed - 1)
+            return
+         case "p":
+            if (this.pause) {
+               this.setAnimationSpeed(1)
+            } else {
+               this.setAnimationSpeed(0)
+            }
+            return
          case "s":
-            const bestPlayer = this.getBestPlayer()
+            bestPlayer = this.getBestPlayer()
             bestPlayer.swiched = true
+            return
+         case "k":
+            bestPlayer = this.getBestPlayer()
+            bestPlayer.damaged = true
+            return
          default:
             return
       }
    }
 
    setAnimationSpeed = (number) => {
-      this.animationSpeed = Math.min(number, 100)
+      this.animationSpeed = Math.max(Math.min(number, 50), 0)
+      if (this.animationSpeed === 0) {
+         this.pause = true
+      } else {
+         this.pause = false
+      }
+      const slider = document.getElementById("animationSpeed")
+      const sliderLabel = document.getElementById("animationSpeedLabel")
+      slider.value = this.animationSpeed
+      sliderLabel.innerText = `${this.animationSpeed}x`
    }
 
    togglePause = () => {
@@ -143,7 +176,9 @@ export class App {
    }
 
    iterate = () => {
-      this.saveOnLocalStorage()
+      if (window.APP_AUTOLEARN) {
+         this.saveOnLocalStorage()
+      }
       location.reload()
       // this.init(this.simulations, this.trafficNumber, this.animationSpeed)
    }
@@ -175,7 +210,8 @@ export class App {
    }
 
    saveOnLocalStorage = (force = true) => {
-      const bestPlayer = this.bestScoredPlayer()
+      const bestPlayerIndex = this.players.reduce(bestReducer, { score: 0, index: 0 }, false)
+      const bestPlayer = this.players[bestPlayerIndex] || this.bestScoredPlayer()
       const currentScore = bestPlayer.getScore(this.traffic)
       const bestScore = Number(localStorage.getItem("brainScore")) || 0
 
@@ -242,8 +278,11 @@ export class App {
       if (this.world.roadBorders.length === 0 && this.players.length === 0) { return }
       if (this.pause) { return }
 
+      this.traffic.forEach((c) => {
+         const cars = [...this.traffic.slice(0, c.id), ...this.traffic.slice(c.id + 1), this.getBestPlayer()]
+         c.update(this.world.roadBorders, cars)
+      })
       this.players.forEach((c) => c.update(this.world.roadBorders, this.traffic));
-      this.traffic.forEach((c) => c.update(this.world.roadBorders, []))
       const bestPlayer = this.getBestPlayer()
 
       this.info.update({
@@ -291,7 +330,7 @@ export class App {
 
       const now = new Date()
       const timeSinceInit = now.getTime() - this.startAt.getTime()
-      if (timeSinceInit > minTime || this.animationSpeed > 1) {
+      if (timeSinceInit > minTime && this.animationSpeed > 1) {
          if (this.players.reduce(countLiveCars, 0) === 0) {
             return this.iterate()
          }

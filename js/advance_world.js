@@ -5,8 +5,9 @@ window.APP_SIMULATIONS = Number(searchParams.get("simulations")) || 10
 window.APP_TRAFFIC = Number(searchParams.get("traffic")) || 0
 window.APP_SENSORS = Number(searchParams.get("sensors")) || 7
 window.APP_HIDDEN_LEVELS = searchParams.get("hidden_levels") || ''
-window.APP_SHOW_NETWORK = searchParams.get("hide_network") !== 'false'
-window.APP_DIVERGENCE = Number(searchParams.get("divergence")) || 0.2
+window.APP_SHOW_NETWORK = searchParams.get("hide_network") !== 'true'
+window.APP_DIVERGENCE = Number(searchParams.get("divergence")) || 0.3
+window.APP_AUTOLEARN = searchParams.get("autolearn") !== 'false'
 
 
 window.save = () => {

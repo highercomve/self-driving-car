@@ -1,19 +1,25 @@
 import { Sensor } from '../sensor/advanced_rays.js'
+import { subtract, normalize, dot, cross, distance } from '../lib/point.js'
 
 const defaultCarOptions = {
-  acc: 0.2,
+  acc: 0.02,
   maxSpeed: 2.5,
-  friction: 0.05,
+  friction: 0.005,
   drawSensor: false,
   hasSensor: true,
   hasBrain: true
 }
 
-const angleSpeed = 1 / 50
+const sensorMap = s => s == null ? 0 : 1 - s.offset
+const factor = 1000
+const angleSpeed = 1 / 30
 const TWO_PI = 2 * Math.PI
+
 export class Car {
   x = 0
   y = 0
+  startX = 0
+  startY = 0
   width = 30
   height = 50
   color = "black"
@@ -25,10 +31,14 @@ export class Car {
   score = 0
   id = 0
   swiched = false
+  offsets = []
+  dToTarget = 0
 
   constructor(ctx, x, y, width = 30, height = 50, controls, opts = {}, color = "white", brain, id = 0) {
     this.x = x
     this.y = y
+    this.startX = x
+    this.startY = y
     this.width = width
     this.height = height
     this.color = color
@@ -49,11 +59,24 @@ export class Car {
 
     this.controls = controls
     if (options.hasSensor) {
-      this.sensor = new Sensor(this.ctx, this)
+      const sensorOptions = {
+        "rayCount": 7,
+        "rayLength": 250,
+        "raySpread": 2.1,
+        "rayOffset": 0
+      }
+      this.sensor = new Sensor(this.ctx, this, sensorOptions)
+      this.carSensor = new Sensor(this.ctx, this, {
+          rayCount: 20,
+          rayLength: sensorOptions.rayLength,
+          raySpread: Math.PI * 0.6,
+          rayOffset: -Math.PI / 4,
+      });
     }
     if (options.hasBrain && !brain) {
       const hiddenLevel = window.APP_HIDDEN_LEVELS.split(',').map(x => Number(x)).filter(x => x > 0)
-      const levels = [this.sensor.rayCount, this.sensor.rayCount * 2, ...hiddenLevel]
+      const initialLevelInputs = this.sensor.rayCount + 3
+      const levels = [initialLevelInputs, initialLevelInputs + 2, initialLevelInputs + 2, ...hiddenLevel]
       this.brain = new NeuralNetwork(levels, this.id)
     }
 
@@ -77,28 +100,51 @@ export class Car {
   }
 
   getOffsets = () => {
-    return [
-      ...this.sensor.readings.map(s => s == null ? 0 : 1 - s.offset)
+    const carDir = normalize(
+        subtract(this.polygon[3], this.polygon[0])
+    );
+    const dirToTarget = normalize(subtract(this, { x: this.startX, y: this.startY }));
+    const targetDot = dot(carDir, dirToTarget);
+    const crossProduct = cross(carDir, dirToTarget);
+    const angleFeature = (Math.acos(targetDot) * Math.sign(crossProduct)) / Math.PI;
+
+    this.offsets = [
+      ...this.sensor.readings.map(sensorMap),
+      Math.max(...this.carSensor.readings.map(sensorMap)),
+      this.speed / this.maxSpeed,
+      angleFeature
     ]
+
+    return this.offsets
   }
 
   update = (roadBorders, traffic = []) => {
     if (this.damaged) {
       return
     }
-    this.score += 0.1 * (this.speed > 0 ? 1 : 0)
 
-    this.polygon = this.#createPolygon()
+    this.polygon = this.createPolygon()
     if (this.hasSensor) {
       this.damaged = this.#assessDamage(roadBorders, traffic)
     }
 
     if (this.sensor) {
-      this.sensor.update(roadBorders, traffic)
+      this.sensor.update(roadBorders.map((s) => [s.p1, s.p2]))
+      const carBoarders = traffic.reduce((acc, c) => {
+        if (c.polygon.length === 0) { return acc }
+
+        acc.push([c.polygon[0], c.polygon[1]])
+        acc.push([c.polygon[1], c.polygon[2]])
+        acc.push([c.polygon[2], c.polygon[3]])
+        acc.push([c.polygon[3], c.polygon[0]])
+
+        return acc
+      }, [])
+      this.carSensor.update(carBoarders)
     }
 
     if (this.brain && this.sensor) {
-      NeuralNetworkPrediction.calculate(this.updateFromPrediction, this.getOffsets(), copyObject(this.brain))
+      NeuralNetworkPrediction.calculate(this.updateFromPrediction, this.getOffsets(), this.brain)
     }
 
     this.#move()
@@ -113,6 +159,7 @@ export class Car {
     const ctx = this.ctx
     if (this.sensor && this.drawSensor && withSensor) {
       this.sensor.draw(ctx);
+      this.carSensor.draw(ctx);
     }
 
     ctx.save();
@@ -141,7 +188,7 @@ export class Car {
     ctx.restore();
   }
 
-  #createPolygon() {
+  createPolygon() {
     const rad = Math.hypot(this.width, this.height) / 2
     const alpha = Math.atan2(this.width, this.height)
     const points = [
@@ -218,8 +265,14 @@ export class Car {
     this.#calculateSpeed()
     this.#calculateAngle()
 
+    const prevPos = { x: this.x, y: this.y }
     this.x -= Math.sin(this.angle) * this.speed
     this.y -= Math.cos(this.angle) * this.speed
+
+    const d = Math.abs(distance(this, prevPos))
+    const dToTarget = Math.abs(distance(this, { x: this.startX, y: this.startY }))
+    const dPoints = dToTarget > this.dToTarget ? dToTarget : 1000 - dToTarget
+    this.score = this.score + (((d  + dPoints/dToTarget) * (this.speed / this.maxSpeed)) / 1000)
   }
 
 

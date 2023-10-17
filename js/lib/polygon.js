@@ -1,5 +1,5 @@
-import { Segment } from './segment.js'
-import { Point, average } from './point.js'
+import { Point, average, dot, normalize } from "./point.js";
+import { Segment } from "./segment.js";
 
 export class Polygon {
    constructor(points) {
@@ -10,6 +10,10 @@ export class Polygon {
             new Segment(points[i - 1], points[i % points.length])
          );
       }
+   }
+
+   static load(info) {
+      return new Polygon(info.points.map((i) => new Point(i.x, i.y)));
    }
 
    static union(polys) {
@@ -31,6 +35,7 @@ export class Polygon {
             }
          }
       }
+      let end = performance.now();
       return keptSegments;
    }
 
@@ -67,6 +72,85 @@ export class Polygon {
       }
    }
 
+   simplify() {
+      for (let i = 1; i < this.points.length; i++) {
+         const prev = this.points[i - 1];
+         const cur = this.points[i];
+         const next = this.points[(i + 1) % this.points.length];
+         if (dot(normalize(subtract(cur, prev)), normalize(subtract(next, cur))) >= 0.99) {
+            this.points.splice(i, 1);
+            i--;
+         }
+      }
+      this.segments = [];
+      for (let i = 1; i <= this.points.length; i++) {
+         this.segments.push(
+            new Segment(this.points[i - 1], this.points[i % this.points.length])
+         );
+      }
+   }
+
+   area() {
+      let area = 0;
+      for (let i = 0; i < this.points.length; i++) {
+         let nextI = i + 1;
+         if (nextI == this.points.length) {
+            nextI = 0;
+         }
+         area += this.points[i].x * this.points[nextI].y;
+         area -= this.points[i].y * this.points[nextI].x;
+      }
+      area = Math.abs(area) / 2
+      return area;
+   }
+
+   distanceToPoint(point) {
+      return Math.min(...this.segments.map((s) => s.distanceToPoint(point)));
+   }
+
+   distanceToPoly(poly) {
+      return Math.min(...this.points.map((p) => poly.distanceToPoint(p)));
+   }
+
+   // NEW
+   intersectsSegment(seg) {
+      for (let s1 of this.segments) {
+         if (getIntersection(s1.p1, s1.p2, seg.p1, seg.p2)) {
+            return true;
+         }
+      }
+      return false;
+   }
+   containsSegment(seg) {
+      if (this.containsPoint(seg.p1)) {
+         return true;
+      }
+      if (this.containsPoint(seg.p2)) {
+         return true;
+      }
+      return false;
+   }
+   containsPoly(poly) {
+      for (const p of poly.points) {
+         if (this.containsPoint(p)) {
+            return true;
+         }
+      }
+      return false;
+   }
+   //
+
+   intersectsPoly(poly) {
+      for (let s1 of this.segments) {
+         for (let s2 of poly.segments) {
+            if (getIntersection(s1.p1, s1.p2, s2.p1, s2.p2)) {
+               return true;
+            }
+         }
+      }
+      return false;
+   }
+
    containsSegment(seg) {
       const midpoint = average(seg.p1, seg.p2);
       return this.containsPoint(midpoint);
@@ -92,12 +176,18 @@ export class Polygon {
 
    draw(
       ctx,
-      { stroke = "blue", lineWidth = 2, fill = "rgba(0,0,255,0.3)" } = {}
+      {
+         stroke = "blue",
+         lineWidth = 2,
+         fill = "rgba(0,0,255,0.3)",
+         join = "miter",
+      } = {}
    ) {
       ctx.beginPath();
       ctx.fillStyle = fill;
       ctx.strokeStyle = stroke;
       ctx.lineWidth = lineWidth;
+      ctx.lineJoin = join;
       ctx.moveTo(this.points[0].x, this.points[0].y);
       for (let i = 1; i < this.points.length; i++) {
          ctx.lineTo(this.points[i].x, this.points[i].y);

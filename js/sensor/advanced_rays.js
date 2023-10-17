@@ -1,32 +1,40 @@
+import { dot, normalize, subtract, perpendicular } from "../lib/point.js";
+
 export class Sensor {
   debug = false
 
-  constructor(ctx, car, rayCount = 0) {
+  constructor(ctx, car, config = {}) {
+    const {
+      rayCount = 5,
+      rayLength = 150,
+      raySpread = Math.PI / 2,
+      rayOffset = 0,
+    } = config
     this.car = car
-    this.rayCount = rayCount === 0 ? window.APP_SENSORS : rayCount
-    this.rayLength = 200
-    this.raySpread = Math.PI / 1.2
+    this.rayCount = rayCount;
+    this.rayLength = rayLength;
+    this.raySpread = raySpread;
+    this.rayOffset = rayOffset;
 
     this.ctx = ctx
     this.rays = []
     this.readings = []
   }
 
-  update = (roadBorders, traffic) => {
+  update = (boarders, minDotAngle = -1) => {
     this.#castRays()
-    this.#getReadings(roadBorders, traffic)
+    this.#getReadings(boarders, minDotAngle)
   }
 
-  #getReadings(roadBorders, traffic) {
+  #getReadings(boarders, minDotAngle) {
     this.readings = [];
     for (let i = 0; i < this.rays.length; i++) {
-      this.readings.push(this.#getReading(this.rays[i], roadBorders, traffic));
+      this.readings.push(this.#getReading(this.rays[i], boarders, minDotAngle));
     }
   }
 
-  #getReading(ray, roadBorders, traffic = []) {
+  #getReading(ray, boarders, minDotAngle) {
     let touches = [];
-    const boarders = roadBorders.map((s) => [s.p1, s.p2]);
 
     for (let i = 1; i < boarders.length; i++) {
       const touch = getIntersection(
@@ -36,15 +44,15 @@ export class Sensor {
         boarders[i][1]
       );
       if (touch) {
-        touches.push(touch);
-      }
-    }
-
-    for (let i = 0; i < traffic.length; i++) {
-      const poly = traffic[i].polygon
-      for (let j = 0; j < poly.length; j++) {
-        const touch = getIntersection(ray[0], ray[1], poly[j], poly[(j + 1) % poly.length])
-        if (touch) {
+        const angle = dot(
+          normalize(subtract(ray[0], ray[1])),
+          normalize(
+            perpendicular(
+              subtract(boarders[i][0], boarders[i][1])
+            )
+          )
+        );
+        if (angle >= minDotAngle) {
           touches.push(touch);
         }
       }
@@ -59,23 +67,23 @@ export class Sensor {
   }
 
   #castRays() {
-    this.rays = []
+    this.rays = [];
     for (let i = 0; i < this.rayCount; i++) {
-      const rayAngle = lerp(
-        this.raySpread / 2,
-        -this.raySpread / 2,
-        this.rayCount == 1 ? 0.5 : i / (this.rayCount - 1)
-      ) + this.car.angle
+      const rayAngle =
+        this.rayOffset +
+        lerp(
+          this.raySpread / 2,
+          -this.raySpread / 2,
+          this.rayCount == 1 ? 0.5 : i / (this.rayCount - 1)
+        ) +
+        this.car.angle;
 
-      const start = {
-        x: this.car.x,
-        y: this.car.y
-      }
+      const start = { x: this.car.x, y: this.car.y };
       const end = {
         x: this.car.x - Math.sin(rayAngle) * this.rayLength,
-        y: this.car.y - Math.cos(rayAngle) * this.rayLength
-      }
-      this.rays.push([start, end])
+        y: this.car.y - Math.cos(rayAngle) * this.rayLength,
+      };
+      this.rays.push([start, end]);
     }
   }
 
@@ -84,7 +92,7 @@ export class Sensor {
     for (let i = 0; i < this.rayCount; i++) {
       if (this.readings[i]) {
         this.ctx.globalAlpha = 0.4
-        
+
         ctx.beginPath();
         ctx.setLineDash([5, 5]);
         ctx.lineWidth = 2;
