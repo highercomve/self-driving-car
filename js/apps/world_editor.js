@@ -95,11 +95,8 @@ export class App {
          return []
       }
       howMany = Math.min(howMany, 3)
-      const hasBrain = localStorage.getItem("bestBrain") ? true : false
-      let controls = CreateControls()
-      if (hasBrain) {
-         controls = CreateControls("AI")
-      }
+      const hasBrain = true
+      const controls = CreateControls("AI")
       const traffic = []
       for (let i = 0; i < howMany; i++) {
          const odd = i % 2
@@ -121,7 +118,7 @@ export class App {
             controls,
             opts,
             getRandomColor(),
-            localStorage.getItem("bestBrain") ? JSON.parse(localStorage.getItem("bestBrain")) : undefined,
+            localStorage.getItem("bestBrain") ? JSON.parse(localStorage.getItem("bestBrain")) : copyObject(brainDefault),
             i
          ))
       }
