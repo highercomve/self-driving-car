@@ -6,6 +6,8 @@ import { CreateControls } from '../controls.js';
 import { Car } from '../car/advanced.js';
 import { Visualizer } from "../visualizer.js"
 import { Info } from '../info.js'
+import { brain as brainDefault } from '../data/model.js'
+import { track as trackDefault } from '../data/track.js'
 
 const minTime = 10000
 const maxTime = 60000
@@ -60,6 +62,12 @@ export class App {
          let brain
          if (brainJson) {
             brain = copyObject(brainJson)
+            if (i > 0) {
+               NeuralNetwork.mutate(brain, window.APP_DIVERGENCE)
+            }
+            brain.id = i
+         } else if (!localStorage.getItem("fromScrath")) {
+            brain = copyObject(brainDefault)
             if (i > 0) {
                NeuralNetwork.mutate(brain, window.APP_DIVERGENCE)
             }
@@ -216,6 +224,9 @@ export class App {
       const bestScore = Number(localStorage.getItem("brainScore")) || 0
 
       localStorage.setItem("iteration", this.iteration);
+      localStorage.removeItem("fromScrath");
+      localStorage.setItem("animationSpeed", this.animationSpeed)
+
       if (force || currentScore >= bestScore) {
          this.bestScore = bestPlayer.score
          this.bestFitness = bestPlayer.fitness
@@ -223,8 +234,6 @@ export class App {
          localStorage.setItem("brainScore", this.bestScore);
          localStorage.setItem("brainFitness", this.bestFitness);
       }
-
-      localStorage.setItem("animationSpeed", this.animationSpeed)
    }
 
    init = (simulations = 1, trafficNumber = 0, animationSpeed = 1) => {
@@ -240,6 +249,8 @@ export class App {
       this.networkCtx = this.networkCanvas.getContext("2d")
       if (localStorage.getItem('track')) {
          this.graph = Graph.load(JSON.parse(localStorage.getItem('track')))
+      } else if (!localStorage.getItem("fromScrath")) {
+         this.graph = Graph.load(trackDefault)
       } else {
          this.graph = new Graph();
       }

@@ -20,6 +20,7 @@ window.saveGraph = () => {
 
 window.restart = () => {
   localStorage.clear()
+  localStorage.setItem("fromScrath", true)
   location.reload()
 }
 
