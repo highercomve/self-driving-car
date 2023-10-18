@@ -91,7 +91,7 @@ export class Sensor {
     const ctx = this.ctx
     for (let i = 0; i < this.rayCount; i++) {
       if (this.readings[i]) {
-        this.ctx.globalAlpha = 0.4
+        this.ctx.globalAlpha = 0.1
 
         ctx.beginPath();
         ctx.setLineDash([5, 5]);
@@ -101,7 +101,7 @@ export class Sensor {
         ctx.moveTo(this.rays[i][0].x, this.rays[i][0].y);
         ctx.lineTo(this.readings[i].x, this.readings[i].y);
         ctx.stroke();
-
+        this.ctx.globalAlpha = 0.6
         ctx.setLineDash([])
         ctx.beginPath();
         ctx.lineWidth = 2;

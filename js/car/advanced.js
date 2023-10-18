@@ -11,9 +11,7 @@ const defaultCarOptions = {
 }
 
 const sensorMap = s => s == null ? 0 : 1 - s.offset
-const factor = 1000
-const angleSpeed = 1 / 30
-const TWO_PI = 2 * Math.PI
+const angleSpeed = 1 / 20
 
 export class Car {
   x = 0

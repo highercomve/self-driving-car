@@ -14,7 +14,7 @@ const maxTime = 60000
 const carOptions = {
    width: 22,
    height: 38,
-   maxSpeed: 2
+   maxSpeed: 3
  }
 
 const bestReducer = (best, c, i) => {
@@ -254,6 +254,7 @@ export class App {
       } else {
          this.graph = new Graph();
       }
+
       this.players = App.generateCars(
          simulations,
          this.ctx,
