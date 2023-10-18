@@ -14,7 +14,7 @@ const maxTime = 60000
 const carOptions = {
    width: 22,
    height: 38,
-   maxSpeed: 1.5
+   maxSpeed: 2
  }
 
 const bestReducer = (best, c, i) => {
