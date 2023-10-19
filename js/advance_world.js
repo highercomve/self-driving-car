@@ -24,6 +24,11 @@ window.restart = () => {
   location.reload()
 }
 
+window.fromDefault = () => {
+  localStorage.clear()
+  location.reload()
+}
+
 window.iterate = () => {
   window.app.iterate()
 }
